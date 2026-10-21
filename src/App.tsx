@@ -7,6 +7,7 @@ import { exportFavorites } from './lib/exportFavorites';
 import type { Tab } from './types';
 
 import AnalyticsTab from './components/AnalyticsTab';
+import Assistant from './components/Assistant';
 import AuthModal from './components/AuthModal';
 import CareerModal from './components/CareerModal';
 import CatalogTab from './components/CatalogTab';
@@ -17,6 +18,15 @@ import QuizTab from './components/QuizTab';
 import SimulatorTab from './components/SimulatorTab';
 import SkillsTab from './components/SkillsTab';
 import Toast from './components/Toast';
+
+// Readable section names sent to the assistant so it knows where the visitor is.
+const TAB_LABELS: Record<string, string> = {
+  catalog: 'Каталог Професии',
+  quiz: 'Тест за съвместимост',
+  analytics: 'Анализи & Трендове',
+  skills: 'Топ Умения',
+  simulator: 'Един ден през 2035',
+};
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('catalog');
@@ -113,6 +123,8 @@ export default function App() {
       )}
 
       <Toast message={toast.message} visible={toast.visible} />
+
+      <Assistant currentTab={TAB_LABELS[tab] ?? tab} />
     </div>
   );
 }
