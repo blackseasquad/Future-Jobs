@@ -2,7 +2,7 @@ import type { QuizQuestion } from '../types';
 
 export const quizQuestions: QuizQuestion[] = [
   {
-    question: 'Коя область най-много пали вашето любопитство?',
+    question: 'Коя област най-много пали вашето любопитство?',
     options: [
       { text: 'Изкуствен интелект, кодинг и алгоритми', category: 'ai' },
       { text: 'Опазване на природата и чиста енергия', category: 'green' },

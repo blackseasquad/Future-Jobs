@@ -10,9 +10,9 @@ import AnalyticsTab from './components/AnalyticsTab';
 import Assistant from './components/Assistant';
 import AuthModal from './components/AuthModal';
 import CareerModal from './components/CareerModal';
-import CatalogTab from './components/CatalogTab';
 import FavoritesModal from './components/FavoritesModal';
 import Header from './components/Header';
+import OceanJourney from './components/OceanJourney';
 import Hero from './components/Hero';
 import QuizTab from './components/QuizTab';
 import SimulatorTab from './components/SimulatorTab';
@@ -71,22 +71,27 @@ export default function App() {
         onOpenFavorites={() => setShowFavorites(true)}
         onOpenAuth={() => setShowAuth(true)}
       />
-      <Hero />
-
-      <main className="main">
-        {tab === 'catalog' && (
-          <CatalogTab
+      {tab === 'catalog' ? (
+        <main>
+          <OceanJourney
             isFavorite={isFavorite}
             onToggleFavorite={toggle}
             onOpen={setOpenCareerId}
             onSimulate={simulate}
+            onGoQuiz={() => setTab('quiz')}
           />
-        )}
-        {tab === 'quiz' && <QuizTab onOpenCareer={setOpenCareerId} />}
-        {tab === 'analytics' && <AnalyticsTab />}
-        {tab === 'skills' && <SkillsTab />}
-        {tab === 'simulator' && <SimulatorTab roleId={simRoleId} onChange={setSimRoleId} />}
-      </main>
+        </main>
+      ) : (
+        <>
+          <Hero />
+          <main className="main">
+            {tab === 'quiz' && <QuizTab onOpenCareer={setOpenCareerId} />}
+            {tab === 'analytics' && <AnalyticsTab />}
+            {tab === 'skills' && <SkillsTab />}
+            {tab === 'simulator' && <SimulatorTab roleId={simRoleId} onChange={setSimRoleId} />}
+          </main>
+        </>
+      )}
 
       <footer className="footer">
         <p>© 2026 Интерактивен Навигатор "Професии на Бъдещето". Създаден за образователни и кариерни цели.</p>
