@@ -120,13 +120,6 @@ const good = mk();
 await cron({ method: 'GET', headers: { authorization: `Bearer ${process.env.CRON_SECRET}` }, query: {} }, good);
 check('cron handler accepts the secret (runs or skips by Sofia time / once-per-day guard)', good.statusCode === 200 || good.statusCode === 502, good.body?.status || good.body);
 report.cronResponse = { status: good.statusCode, body: { status: good.body?.status, reason: good.body?.reason, sofia: good.body?.sofia, durationMs: good.body?.durationMs } };
-if (process.env.UI_FIXTURES_DIR) {
-  // Real-data fixtures for the UI screenshot check (CI only).
-  writeFileSync(`${process.env.UI_FIXTURES_DIR}/market-data.json`, JSON.stringify(await buildSnapshot(anonStore)));
-  writeFileSync(`${process.env.UI_FIXTURES_DIR}/recommendations.json`, JSON.stringify({ configured: true, ready: true,
-    computedDate: (await anonStore.getLatestScores())[0]?.computed_date, horizons: recs, ai: null }));
-}
-
 report.finishedAt = new Date().toISOString();
 report.ok = report.checks.every((c) => c.ok);
 writeFileSync(process.env.REPORT_PATH || 'integration-report.json', JSON.stringify(report, null, 2));

@@ -126,7 +126,7 @@ export function forecastByIsco2(forecasts, preferredGeo = 'EU27_2020') {
 export async function runRefresh({ store, now = new Date(), trigger = 'cron', force = false, adapters = defaultAdapters,
   fetchImpl, budgets = {}, log = console } = {}) {
   const startedMs = Date.now();
-  const timeBudgetMs = budgets.timeMs ?? 45000;
+  const timeBudgetMs = budgets.timeMs ?? 35000; // keeps a cold first run well under the 60 s function limit
   const escoRequestBudget = budgets.escoRequests ?? 80;
   const occupationBudget = budgets.occupations ?? 150;
   const { date: today } = sofiaClock(now);

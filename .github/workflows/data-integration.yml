@@ -4,10 +4,10 @@ name: Data pipeline integration
 on:
   workflow_dispatch:
   push:
-    branches: ['claude/live-market-data']
-    paths: ['api/**', 'src/**', 'tests/**', 'supabase/**', 'scripts/**', '.github/workflows/data-integration.yml']
+    branches: [main]
+    paths: ['api/**', 'supabase/**', 'scripts/integration-check.mjs', '.github/workflows/data-integration.yml']
 permissions:
-  contents: write
+  contents: read
 jobs:
   integration:
     runs-on: ubuntu-latest
@@ -17,15 +17,6 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
-      - name: Unit tests, type check and build (logged for the report)
-        run: |
-          set +e
-          { echo "== npm test"; npm test 2>&1 | tail -40; echo "exit=${PIPESTATUS[0]}";
-            echo "== typecheck"; npx tsc --noEmit 2>&1 | tail -60; echo "exit=${PIPESTATUS[0]}";
-            echo "== build"; npx vite build 2>&1 | tail -25; echo "exit=${PIPESTATUS[0]}"; } > ci-log.txt
-          cat ci-log.txt
-          ! grep -q "^exit=[1-9]" ci-log.txt
-        continue-on-error: true
       - uses: supabase/setup-cli@v1
         with: { version: latest }
       - name: Start a local Supabase
@@ -45,17 +36,7 @@ jobs:
           export SUPABASE_URL=$(echo "$SB_API_URL" | tr -d '"')
           export SUPABASE_SERVICE_ROLE_KEY=$(echo "${SB_SERVICE_ROLE_KEY:-$SB_SECRET_KEY}" | tr -d '"')
           export SUPABASE_ANON_KEY=$(echo "${SB_ANON_KEY:-$SB_PUBLISHABLE_KEY}" | tr -d '"')
-          mkdir -p /tmp/fixtures
-          UI_FIXTURES_DIR=/tmp/fixtures REPORT_PATH=integration-report.json node scripts/integration-check.mjs
-      # TEMPORARY (removed before merge): UI screenshots with the real-data fixtures.
-      - name: UI screenshots
-        if: always() && github.ref == 'refs/heads/claude/live-market-data'
-        continue-on-error: true
-        run: |
-          npx vite build >/dev/null
-          (npx vite preview --port 4173 >/dev/null 2>&1 &) ; sleep 3
-          npm i --no-save playwright@1 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
-          UI_FIXTURES_DIR=/tmp/fixtures node scripts/ui-screenshots.mjs
+          REPORT_PATH=integration-report.json node scripts/integration-check.mjs
       - name: Summary
         if: always()
         run: |
@@ -64,13 +45,3 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: integration-report, path: integration-report.json, if-no-files-found: ignore }
-      # TEMPORARY (removed before merge): publish the report on the probe branch so it can be read without the API.
-      - name: Publish report to probe branch
-        if: always() && github.ref == 'refs/heads/claude/live-market-data'
-        run: |
-          [ -f integration-report.json ] || echo '{"ok":false,"note":"no report produced"}' > integration-report.json
-          cp integration-report.json /tmp/report.json; cp ci-log.txt /tmp/ci-log.txt 2>/dev/null || true; cp -r shots /tmp/shots 2>/dev/null || true
-          git fetch origin claude/data-source-probe && git checkout -f FETCH_HEAD
-          mkdir -p probe-results && cp /tmp/report.json probe-results/integration-${GITHUB_SHA}.json && (cp /tmp/ci-log.txt probe-results/ci-${GITHUB_SHA}.txt || true) && (cp -r /tmp/shots probe-results/shots-${GITHUB_SHA} || true)
-          git config user.name "integration-bot"; git config user.email "integration-bot@users.noreply.github.com"
-          git add probe-results && git commit -m "integration report ${GITHUB_SHA} [skip ci]" && git push origin HEAD:claude/data-source-probe
