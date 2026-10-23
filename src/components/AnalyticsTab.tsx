@@ -11,7 +11,12 @@ import {
   type ChartOptions,
 } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
+import type { User } from '@supabase/supabase-js';
 import { careers } from '../data/careers';
+import type { MarketSnapshot } from '../lib/marketData';
+import type { Notify } from '../types';
+import DataStatus from './DataStatus';
+import VacancyChart from './VacancyChart';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Filler, Tooltip, Legend);
 
@@ -52,9 +57,18 @@ const salaryData = {
   ],
 };
 
-export default function AnalyticsTab() {
+interface AnalyticsTabProps {
+  market: MarketSnapshot | null;
+  marketError: string | null;
+  onReloadMarket: () => void;
+  user: User | null;
+  notify: Notify;
+}
+
+export default function AnalyticsTab({ market, marketError, onReloadMarket, user, notify }: AnalyticsTabProps) {
   return (
     <section className="stack">
+      <VacancyChart data={market} />
       <div className="two-col">
         <div className="panel glass">
           <h3 className="panel__title panel__title--cyan">
@@ -74,6 +88,11 @@ export default function AnalyticsTab() {
           </div>
         </div>
       </div>
+
+      <p className="source-note">
+        <span className="tag tag--model">Илюстративно</span> Диаграмите за ръст, риск от AI и заплати по-горе и прогнозите по-долу
+        са редакционни оценки за примерните професии в каталога, а не измерени статистики.
+      </p>
 
       <div className="three-col">
         <div className="outlook outlook--cyan glass">
@@ -104,6 +123,8 @@ export default function AnalyticsTab() {
           </p>
         </div>
       </div>
+
+      <DataStatus data={market} error={marketError} user={user} notify={notify} onReload={onReloadMarket} />
     </section>
   );
 }

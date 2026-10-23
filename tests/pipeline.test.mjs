@@ -113,11 +113,15 @@ test('if every source fails, the run is "failed" and the last valid data stays u
   assert.ok(snap.freshness.lastSuccessfulRunAt);
 });
 
-test('too few ads from a source are rejected instead of overwriting history', async () => {
+test('a small source feeds only the combined sample; an empty one is an error', async () => {
   const store = createMemoryStore();
   const r = await runRefresh({ store, now: DAY1, log: quiet, adapters: adapters({ fetchRemotiveJobs: async () => fakeJobs('remotive', 5) }) });
-  assert.equal(r.results.remotive.status, 'error');
-  assert.match(r.results.remotive.error, /only 5 ads/);
+  assert.equal(r.results.remotive.status, 'ok');
+  assert.match(r.results.remotive.warning, /малка извадка/);
+  assert.ok(!store._tables.demand.has('remotive|python|2026-10-24'), 'no per-source statistics from 5 ads');
+  assert.equal(store._tables.demand.get('jobs_combined|python|2026-10-24').ads_total, 85);
+  const empty = await runRefresh({ store, now: DAY2, log: quiet, adapters: adapters({ fetchRemotiveJobs: async () => [] }) });
+  assert.equal(empty.results.remotive.status, 'error');
 });
 
 test('duplicate ads across boards are counted once', async () => {

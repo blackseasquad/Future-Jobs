@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   push:
     branches: ['claude/live-market-data']
-    paths: ['api/**', 'supabase/**', 'scripts/integration-check.mjs', '.github/workflows/data-integration.yml']
+    paths: ['api/**', 'src/**', 'tests/**', 'supabase/**', 'scripts/**', '.github/workflows/data-integration.yml']
 permissions:
   contents: write
 jobs:
@@ -17,6 +17,15 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
+      - name: Unit tests, type check and build (logged for the report)
+        run: |
+          set +e
+          { echo "== npm test"; npm test 2>&1 | tail -40; echo "exit=${PIPESTATUS[0]}";
+            echo "== typecheck"; npx tsc --noEmit 2>&1 | tail -60; echo "exit=${PIPESTATUS[0]}";
+            echo "== build"; npx vite build 2>&1 | tail -25; echo "exit=${PIPESTATUS[0]}"; } > ci-log.txt
+          cat ci-log.txt
+          ! grep -q "^exit=[1-9]" ci-log.txt
+        continue-on-error: true
       - uses: supabase/setup-cli@v1
         with: { version: latest }
       - name: Start a local Supabase
@@ -50,8 +59,8 @@ jobs:
         if: always() && github.ref == 'refs/heads/claude/live-market-data'
         run: |
           [ -f integration-report.json ] || echo '{"ok":false,"note":"no report produced"}' > integration-report.json
-          cp integration-report.json /tmp/report.json
+          cp integration-report.json /tmp/report.json; cp ci-log.txt /tmp/ci-log.txt 2>/dev/null || true
           git fetch origin claude/data-source-probe && git checkout -f FETCH_HEAD
-          mkdir -p probe-results && cp /tmp/report.json probe-results/integration-${GITHUB_SHA}.json
+          mkdir -p probe-results && cp /tmp/report.json probe-results/integration-${GITHUB_SHA}.json && (cp /tmp/ci-log.txt probe-results/ci-${GITHUB_SHA}.txt || true)
           git config user.name "integration-bot"; git config user.email "integration-bot@users.noreply.github.com"
           git add probe-results && git commit -m "integration report ${GITHUB_SHA} [skip ci]" && git push origin HEAD:claude/data-source-probe

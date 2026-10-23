@@ -2,6 +2,8 @@ import { useCallback, useState } from 'react';
 import { careers } from './data/careers';
 import { useAuth } from './hooks/useAuth';
 import { useFavorites } from './hooks/useFavorites';
+import { useKnownSkills } from './hooks/useKnownSkills';
+import { useMarketData } from './hooks/useMarketData';
 import { useToast } from './hooks/useToast';
 import { exportFavorites } from './lib/exportFavorites';
 import type { Tab } from './types';
@@ -38,6 +40,8 @@ export default function App() {
   const { toast, notify } = useToast();
   const auth = useAuth(notify);
   const { favorites, toggle, isFavorite } = useFavorites(auth.user, notify);
+  const market = useMarketData();
+  const knownSkills = useKnownSkills(auth.user);
 
   const simulate = useCallback((id: string) => {
     setSimRoleId(id);
@@ -83,8 +87,12 @@ export default function App() {
           />
         )}
         {tab === 'quiz' && <QuizTab onOpenCareer={setOpenCareerId} />}
-        {tab === 'analytics' && <AnalyticsTab />}
-        {tab === 'skills' && <SkillsTab />}
+        {tab === 'analytics' && (
+          <AnalyticsTab market={market.data} marketError={market.error} onReloadMarket={market.reload} user={auth.user} notify={notify} />
+        )}
+        {tab === 'skills' && (
+          <SkillsTab market={market.data} favorites={favorites} knownSkills={knownSkills.known} onToggleKnown={knownSkills.toggle} />
+        )}
         {tab === 'simulator' && <SimulatorTab roleId={simRoleId} onChange={setSimRoleId} />}
       </main>
 

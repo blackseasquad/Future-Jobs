@@ -79,16 +79,20 @@ report.countsAfterRun2 = c2;
 const grew = TABLES.filter((t) => t !== 'refresh_runs' && t !== 'occupations' && c2[t] !== c1[t]);
 check('re-run does not duplicate rows', grew.length === 0 && run2.status !== 'failed', { grew, c1, c2 });
 
-// 3) unreachable source
+// 3) unreachable sources (the main job board and Eurostat JVS)
 const brokenFetch = async (u, init) => {
-  if (String(u).includes('remotive.com')) throw new TypeError('fetch failed: getaddrinfo ENOTFOUND remotive.com');
+  if (String(u).includes('arbeitnow.com')) throw new TypeError('fetch failed: getaddrinfo ENOTFOUND www.arbeitnow.com');
+  if (String(u).includes('jvs_q_nace2')) throw new TypeError('fetch failed: connect ETIMEDOUT ec.europa.eu');
   return cachedFetch(u, init);
 };
 const run3 = await runRefresh({ store, now, trigger: 'test', force: true, fetchImpl: brokenFetch, budgets: { ...budgets, occupations: 0 } });
-const { data: rem } = await service.from('data_sources').select('last_status, last_error, last_success_at').eq('id', 'remotive').single();
-const { count: remRows } = await service.from('skill_demand_snapshots').select('*', { count: 'exact', head: true }).eq('source_id', 'remotive');
-check('unreachable source -> partial run, error logged, data kept',
-  run3.status === 'partial' && rem.last_status === 'error' && rem.last_success_at && remRows > 0, { status: run3.status, rem, remRows });
+const { data: arb } = await service.from('data_sources').select('last_status, last_error, last_success_at').eq('id', 'arbeitnow').single();
+const c3 = await counts();
+const { data: scoresAfter } = await service.from('skill_scores').select('score, inputs').not('score', 'is', null).limit(1);
+check('unreachable sources -> partial run, errors logged, previous data kept',
+  run3.status === 'partial' && arb.last_status === 'error' && Boolean(arb.last_success_at)
+  && c3.skill_demand_snapshots === c2.skill_demand_snapshots && c3.stat_series === c2.stat_series && scoresAfter?.length === 1,
+  { status: run3.status, arb, jobs_combined: run3.results.jobs_combined, demandRows: c3.skill_demand_snapshots, statRows: c3.stat_series });
 
 // 4) public read + RLS
 const anonStore = createSupabaseStore(anon);

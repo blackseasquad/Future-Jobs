@@ -224,13 +224,17 @@ export async function runRefresh({ store, now = new Date(), trigger = 'cron', fo
   for (const [sourceId, fn] of [['remotive', adapters.fetchRemotiveJobs], ['arbeitnow', adapters.fetchArbeitnowJobs]]) {
     await step(sourceId, async () => {
       const jobs = dedupeJobs(await fn({ fetchImpl }));
-      if (jobs.length < MIN_ADS_PER_SOURCE) throw new Error(`only ${jobs.length} ads returned (< ${MIN_ADS_PER_SOURCE}); keeping previous data`);
+      if (jobs.length === 0) throw new Error('no valid ads returned; keeping previous data');
+      jobsBySource[sourceId] = jobs;
+      if (jobs.length < MIN_ADS_PER_SOURCE) {
+        // Valid response but too small for its own statistics: the ads still count in the combined sample.
+        return { records: jobs.length, period: today, warning: `малка извадка (${jobs.length} обяви) — включени само в общата извадка` };
+      }
       const a = analyzeJobs(jobs, skills);
       await store.upsertDemandSnapshots(skills.map((s) => ({
         source_id: sourceId, skill_id: s.id, snapshot_date: today, ads_total: a.total,
         ads_matching: a.counts.get(s.id), share: round(a.counts.get(s.id) / a.total, 6),
       })));
-      jobsBySource[sourceId] = jobs;
       return { records: jobs.length, period: today };
     });
   }
