@@ -1,0 +1,37 @@
+
+skills: 0/34, occupations: 0/0, with ISCO: 0
+warn: python: HTTP 403 for ec.europa.eu/esco/api/search
+warn: machine-learning: HTTP 403 for ec.europa.eu/esco/api/search
+warn: generative-ai: HTTP 403 for ec.europa.eu/esco/api/search
+warn: data-analysis: HTTP 403 for ec.europa.eu/esco/api/search
+warn: sql: HTTP 403 for ec.europa.eu/esco/api/search
+warn: cloud: HTTP 403 for ec.europa.eu/esco/api/search
+warn: cybersecurity: HTTP 403 for ec.europa.eu/esco/api/search
+warn: devops: HTTP 403 for ec.europa.eu/esco/api/search
+warn: software-engineering: HTTP 403 for ec.europa.eu/esco/api/search
+warn: ai-governance: HTTP 403 for ec.europa.eu/esco/api/search
+warn: data-privacy: HTTP 403 for ec.europa.eu/esco/api/search
+warn: ux-design: HTTP 403 for ec.europa.eu/esco/api/search
+warn: xr-3d: HTTP 403 for ec.europa.eu/esco/api/search
+warn: robotics: HTTP 403 for ec.europa.eu/esco/api/search
+warn: embedded-iot: HTTP 403 for ec.europa.eu/esco/api/search
+warn: renewable-energy: HTTP 403 for ec.europa.eu/esco/api/search
+warn: sustainability: HTTP 403 for ec.europa.eu/esco/api/search
+warn: circular-economy: HTTP 403 for ec.europa.eu/esco/api/search
+warn: bioinformatics: HTTP 403 for ec.europa.eu/esco/api/search
+warn: biotechnology: HTTP 403 for ec.europa.eu/esco/api/search
+warn: digital-health: HTTP 403 for ec.europa.eu/esco/api/search
+warn: systems-engineering: HTTP 403 for ec.europa.eu/esco/api/search
+warn: materials-science: HTTP 403 for ec.europa.eu/esco/api/search
+warn: project-management: HTTP 403 for ec.europa.eu/esco/api/search
+warn: communication: HTTP 403 for ec.europa.eu/esco/api/search
+warn: leadership: HTTP 403 for ec.europa.eu/esco/api/search
+warn: analytical-thinking: HTTP 403 for ec.europa.eu/esco/api/search
+warn: creativity: HTTP 403 for ec.europa.eu/esco/api/search
+warn: adaptability: HTTP 403 for ec.europa.eu/esco/api/search
+warn: customer-focus: HTTP 403 for ec.europa.eu/esco/api/search
+warn: digital-marketing: HTTP 403 for ec.europa.eu/esco/api/search
+warn: foreign-languages: HTTP 403 for ec.europa.eu/esco/api/search
+warn: finance: HTTP 403 for ec.europa.eu/esco/api/search
+warn: teaching: HTTP 403 for ec.europa.eu/esco/api/search
+Too many failures — not writing the file.
