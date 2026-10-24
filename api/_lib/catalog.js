@@ -79,9 +79,11 @@ export const SKILLS = [
   { id: 'customer-focus', bg: 'Обслужване на клиенти', en: 'Customer service', categories: ['core'], esco: 'customer service',
     terms: ['customer service', 'customer support', 'customer success', 'client relationship'] },
   { id: 'digital-marketing', bg: 'Дигитален маркетинг и продажби', en: 'Digital marketing & sales', categories: ['core'], esco: 'digital marketing techniques',
-    terms: ['digital marketing', 'seo', 'performance marketing', 'social media marketing', 'b2b sales', 'sales'] },
+    terms: ['digital marketing', 'seo', 'performance marketing', 'social media marketing', 'b2b sales', 'sales manager', 'account executive', 'business development'] },
   { id: 'foreign-languages', bg: 'Чужди езици', en: 'Foreign languages', categories: ['core'], esco: 'English',
-    terms: ['fluent english', 'english', 'german', 'french', 'spanish', 'multilingual', 'bilingual'] },
+    // only explicit language requirements — bare "english"/"german" also match the ad's own language and location
+    terms: ['fluent english', 'fluent german', 'fluent french', 'english skills', 'german skills', 'business english', 'english language skills',
+      'german language skills', 'language skills', 'multilingual', 'bilingual', 'deutschkenntnisse', 'englischkenntnisse'] },
   { id: 'finance', bg: 'Финанси и счетоводство', en: 'Finance & accounting', categories: ['core'], esco: 'financial analysis',
     terms: ['financial analysis', 'accounting', 'controlling', 'fintech', 'financial modelling', 'financial modeling'] },
   { id: 'teaching', bg: 'Обучение и менторство', en: 'Teaching & training', categories: ['core'], esco: 'teach',
