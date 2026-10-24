@@ -1,14 +1,19 @@
-# Rebuilds api/_data/esco-map.js from the ESCO API (which blocks Vercel's servers but works from GitHub)
-# and commits it to the branch the workflow runs on. Run it manually after a new ESCO release, or after
-# adding skills to api/_lib/catalog.js; then deploy as usual.
+# Builds api/_data/esco-map.js (ESCO skill → occupation → ISCO-08 mapping) from the ESCO API and
+# bundles it with the code, so the daily refresh on Vercel never depends on ESCO being online.
+#  - manual run: commits the file to the branch it runs on;
+#  - weekly schedule (on main): retries until ESCO is reachable and, when the data changed, pushes the
+#    file to the branch `esco-map-update` and opens a pull request for review (nothing is merged automatically).
 name: Build ESCO map
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * 1'
   push:
     branches: ['claude/**']
     paths: ['api/_lib/catalog.js', 'scripts/build-esco-map.mjs']
 permissions:
   contents: write
+  pull-requests: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,41 +22,19 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
-      - name: Probe ESCO access (temporary)
-        if: always()
-        run: |
-          U='https://ec.europa.eu/esco/api/search?text=python&type=skill&language=en&limit=1'
-          {
-          for ua in "FutureJobs/1.0 (+https://github.com/blackseasquad/Future-Jobs)" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36" "curl/8.5.0"; do
-            echo "== UA: $ua"; curl -sS -m 30 -A "$ua" -H 'accept: application/json' -o /tmp/b -w '%{http_code}\n' "$U"; head -c 400 /tmp/b; echo
-          done
-          echo "== no accept header"; curl -sS -m 30 -o /tmp/b -w '%{http_code}\n' "$U"; head -c 400 /tmp/b; echo
-          echo "== resource"; curl -sS -m 30 -o /tmp/b -w '%{http_code}\n' 'https://ec.europa.eu/esco/api/resource/skill?uri=http://data.europa.eu/esco/skill/ccd0a1d9-afda-43d9-b901-96344886e14d&language=en'; head -c 300 /tmp/b; echo
-          echo "== portal"; curl -sS -m 30 -o /tmp/b -w '%{http_code}\n' -I 'https://esco.ec.europa.eu/en/use-esco/download'; head -c 300 /tmp/b; echo
-          echo "== headers"; curl -sS -m 30 -D - -o /dev/null "$U" | head -20
-          echo "== production read-only (public anon key from the site bundle)"
-          JS=$(curl -sS https://future-jobs-orcin.vercel.app/ | grep -o '/assets/[^"]*\.js' | head -1)
-          curl -sS "https://future-jobs-orcin.vercel.app$JS" -o /tmp/app.js
-          SBURL=$(grep -o 'https://[a-z0-9]*\.supabase\.co' /tmp/app.js | head -1)
-          KEY=$(grep -oE '(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|sb_publishable_[A-Za-z0-9_-]+)' /tmp/app.js | head -1)
-          echo "supabase host found: ${SBURL:+yes} key found: ${KEY:+yes}"
-          for q in "occupation_forecasts?select=geo,isco2,occupation_label,start_year,end_year,annual_growth_pct,edition" "data_sources?select=id,last_status,last_error,data_period,records_last_run" "refresh_runs?select=run_key,trigger,status,started_at&order=started_at.desc&limit=5" "occupations?select=uri&limit=3" "skill_occupations?select=skill_id&limit=3"; do
-            echo "-- $q"; curl -sS -H "apikey: $KEY" -H "authorization: Bearer $KEY" "$SBURL/rest/v1/$q"; echo
-          done
-          } > /tmp/probe.txt 2>&1
-          cat /tmp/probe.txt
-      - name: Build
-        run: |
-          set -o pipefail
-          node scripts/build-esco-map.mjs 2>&1 | tee /tmp/esco-map.log
-      # TEMPORARY: publish the build log while debugging (removed before merge)
-      - name: Publish log
-        if: always()
-        run: |
-          git config user.name "esco-map-bot"; git config user.email "esco-map-bot@users.noreply.github.com"
-          cat /tmp/probe.txt /tmp/esco-map.log > esco-map.txt 2>/dev/null; git add -f esco-map.txt && git commit -m "ESCO map build log" && git push || true
+      - run: node scripts/build-esco-map.mjs
       - name: Commit if changed
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "esco-map-bot"; git config user.email "esco-map-bot@users.noreply.github.com"
           git add api/_data/esco-map.js
-          git diff --cached --quiet && echo "no changes" || (git commit -m "Update ESCO map" && git push)
+          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
+          git commit -m "Update ESCO map"
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            git push -f origin HEAD:esco-map-update
+            gh pr create --head esco-map-update --base "${{ github.ref_name }}" --title "Update ESCO map" \
+              --body "Automatic rebuild of api/_data/esco-map.js from the ESCO API." || echo "PR not created (exists or not allowed)"
+          else
+            git push
+          fi

@@ -16,6 +16,7 @@ import { careers } from '../data/careers';
 import type { MarketSnapshot } from '../lib/marketData';
 import type { Notify } from '../types';
 import DataStatus from './DataStatus';
+import OccupationGroupsChart from './OccupationGroupsChart';
 import VacancyChart from './VacancyChart';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Filler, Tooltip, Legend);
@@ -69,6 +70,7 @@ export default function AnalyticsTab({ market, marketError, onReloadMarket, user
   return (
     <section className="stack">
       <VacancyChart data={market} />
+      <OccupationGroupsChart data={market} />
       <div className="two-col">
         <div className="panel glass">
           <h3 className="panel__title panel__title--cyan">

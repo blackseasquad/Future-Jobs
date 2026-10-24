@@ -5,6 +5,7 @@ import type { ChartOptions } from 'chart.js';
 import { CONFIDENCE_LABELS, fmtDate, fmtPct, type MarketSnapshot, type SkillData } from '../lib/marketData';
 
 const MUTED = '#94a3b8';
+const geoName = (g: string | null) => (g === 'EU27_2020' ? 'ЕС-27' : g === 'BG' ? 'България' : g ?? '—');
 const GRID = 'rgba(255, 255, 255, 0.05)';
 const COMPONENT_LABELS: Record<string, string> = {
   demand: 'Текущо търсене', momentum: 'Промяна в търсенето', longTerm: 'Дългосрочна прогноза',
@@ -67,6 +68,9 @@ function SkillDetails({ s, labelById }: { s: SkillData; labelById: Map<string, s
         {inp?.demand && (
           <li><span className="tag tag--fact">Факт</span> {inp.demand.ads_matching} от {inp.demand.ads_total} обяви ({fmtPct(inp.demand.share)}) към {fmtDate(inp.demand.date)} — Remotive, Arbeitnow.</li>
         )}
+        {inp?.occupation_source === 'editorial' && (
+          <li><span className="tag tag--model">Връзка</span> Групите професии за това умение са редакционно зададени, защото речникът ESCO още не е наличен.</li>
+        )}
         {inp && inp.occupations.essential + inp.occupations.optional > 0 && (
           <li><span className="tag tag--fact">Факт</span> ESCO: свързано с {inp.occupations.essential + inp.occupations.optional} професии (основно умение в {inp.occupations.essential}).</li>
         )}
@@ -74,7 +78,7 @@ function SkillDetails({ s, labelById }: { s: SkillData; labelById: Map<string, s
           <li><span className="tag tag--fact">Факт</span> Заетост в свързаните професии в ЕС: {inp.occupation_trend.cagr_pct > 0 ? '+' : ''}{inp.occupation_trend.cagr_pct.toFixed(1).replace('.', ',')}% средно годишно ({inp.occupation_trend.period}, Eurostat).</li>
         )}
         {inp?.long_term ? (
-          <li><span className="tag tag--forecast">Прогноза</span> Cedefop {inp.long_term.edition}: {inp.long_term.annual_growth_pct > 0 ? '+' : ''}{inp.long_term.annual_growth_pct.toFixed(2).replace('.', ',')}% годишен ръст на заетостта в свързаните професии ({inp.long_term.period}).</li>
+          <li><span className="tag tag--forecast">Прогноза</span> Cedefop {inp.long_term.edition}: {inp.long_term.annual_growth_pct > 0 ? '+' : ''}{inp.long_term.annual_growth_pct.toFixed(2).replace('.', ',')}% годишен ръст на заетостта в свързаните професии ({geoName(inp.long_term.geo)}, {inp.long_term.period}).</li>
         ) : (
           <li><span className="tag tag--forecast">Прогноза</span> Няма импортирана дългосрочна прогноза (Cedefop) за свързаните професии.</li>
         )}
@@ -133,7 +137,7 @@ export default function SkillMarket({ data }: { data: MarketSnapshot | null }) {
                   <td>{s.score?.inputs.demand ? fmtPct(s.score.inputs.demand.share) : <span className="muted">—</span>}</td>
                   <td>{change(s, 30)}</td>
                   <td>{change(s, 90)}</td>
-                  <td>{s.score?.inputs.long_term ? `${s.score.inputs.long_term.annual_growth_pct.toFixed(1).replace('.', ',')}%/год.` : <span className="muted">няма прогноза</span>}</td>
+                  <td>{s.score?.inputs.long_term ? `${s.score.inputs.long_term.annual_growth_pct.toFixed(1).replace('.', ',')}%/год. (${geoName(s.score.inputs.long_term.geo)})` : <span className="muted">няма прогноза</span>}</td>
                   <td>{CONFIDENCE_LABELS[s.score?.confidence ?? 'insufficient']}</td>
                 </tr>
                 {open === s.id && (

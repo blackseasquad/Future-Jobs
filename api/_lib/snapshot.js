@@ -1,15 +1,17 @@
 // Builds the public, read-only snapshot shown in the UI (no personal data).
 
 import { JVS_SECTORS } from './sources.js';
-import { WEF_2025 } from './catalog.js';
+import { CAREER_ISCO, CAREER_SKILLS, ISCO2_BG, WEF_2025 } from './catalog.js';
+import { employmentTrendByIsco2 } from './pipeline.js';
 import { METHODOLOGY_VERSION, WEIGHTS } from './scoring.js';
 import { addDays, sofiaClock } from './util.js';
 
 export const STALE_AFTER_HOURS = 36;
 
 export async function buildSnapshot(store, now = new Date()) {
-  const [sources, runs, skills, scores, jvs] = await Promise.all([
+  const [sources, runs, skills, scores, jvs, lfs, forecasts] = await Promise.all([
     store.getSources(), store.getRuns(15), store.getSkills(), store.getLatestScores(), store.getStatSeries('jvs_q_nace2'),
+    store.getStatSeries('lfsa_egai2d'), store.getForecasts(),
   ]);
   const today = sofiaClock(now).date;
   const history = await store.getDemandHistory('jobs_combined', addDays(today, -120));
@@ -32,6 +34,9 @@ export async function buildSnapshot(store, now = new Date()) {
     series.get(key).points.push({ period: r.period, value: Number(r.value) });
   }
   for (const s of series.values()) s.points.sort((a, b) => a.period.localeCompare(b.period));
+
+  const occupationGroups = buildOccupationGroups(lfs, forecasts);
+  const careers = buildCareers(occupationGroups, scoreById);
 
   return {
     configured: true,
@@ -65,5 +70,49 @@ export async function buildSnapshot(store, now = new Date()) {
     }),
     vacancies: { dataset: 'jvs_q_nace2', source: 'Eurostat', series: [...series.values()] },
     wef: { source: WEF_2025.source, url: WEF_2025.url, period: WEF_2025.period },
+    occupationGroups,
+    careers,
   };
+}
+
+/** Eurostat employment trend + latest level and Cedefop forecasts per ISCO-08 2-digit group. */
+export function buildOccupationGroups(lfs, forecasts) {
+  const codes = new Set([...Object.values(CAREER_ISCO).flat(), ...forecasts.map((f) => f.isco2)]);
+  const trendEU = employmentTrendByIsco2(lfs, 'EU27_2020');
+  const trendBG = employmentTrendByIsco2(lfs, 'BG');
+  const latest = (code, geo) => lfs.filter((r) => r.series_key === `OC${code}` && r.geo === geo)
+    .sort((a, b) => b.period.localeCompare(a.period))[0] || null;
+  const out = {};
+  for (const code of [...codes].sort()) {
+    const eurostat = {};
+    for (const [geo, trend] of [['EU27_2020', trendEU], ['BG', trendBG]]) {
+      const t = trend.get(code);
+      const l = latest(code, geo);
+      if (t || l) {
+        eurostat[geo] = {
+          cagr_pct: t ? Math.round(t.cagr_pct * 100) / 100 : null, from: t?.from ?? null, to: t?.to ?? null,
+          employed_thousands: l ? Number(l.value) : null, period: l?.period ?? null,
+        };
+      }
+    }
+    const cedefop = forecasts.filter((f) => f.isco2 === code)
+      .map((f) => ({ geo: f.geo, annual_growth_pct: Number(f.annual_growth_pct), period: `${f.start_year}–${f.end_year}`, edition: f.edition }))
+      .sort((a, b) => (a.geo === 'EU27_2020' ? -1 : 1) - (b.geo === 'EU27_2020' ? -1 : 1));
+    out[code] = { isco2: code, label_bg: ISCO2_BG[Number(code)] || `ISCO ${code}`, eurostat, cedefop };
+  }
+  return out;
+}
+
+/** Real-data view of each catalogue career: related occupation groups + demand for its key skills. */
+export function buildCareers(groups, scoreById) {
+  const out = {};
+  for (const [careerId, codes] of Object.entries(CAREER_ISCO)) {
+    const skills = (CAREER_SKILLS[careerId] || []).map((id) => {
+      const d = scoreById.get(id)?.inputs?.demand;
+      return { id, share: d?.share ?? null, ads_matching: d?.ads_matching ?? null, ads_total: d?.ads_total ?? null, date: d?.date ?? null,
+        score: scoreById.get(id)?.score ?? null };
+    });
+    out[careerId] = { isco2: codes, groups: codes.map((c) => groups[c]).filter(Boolean), skills };
+  }
+  return out;
 }

@@ -25,6 +25,7 @@ export interface ScoreInputs {
   occupations: { essential: number; optional: number };
   connectivity: number | null;
   related: { id: string; count: number }[];
+  occupation_source?: 'esco' | 'editorial' | null;
 }
 
 export interface SkillData {
@@ -71,6 +72,19 @@ export interface RunInfo {
   sources: Record<string, string | null>;
 }
 
+export interface OccupationGroup {
+  isco2: string;
+  label_bg: string;
+  eurostat: Partial<Record<'EU27_2020' | 'BG', { cagr_pct: number | null; from: string | null; to: string | null; employed_thousands: number | null; period: string | null }>>;
+  cedefop: { geo: string; annual_growth_pct: number; period: string; edition: string }[];
+}
+
+export interface CareerLive {
+  isco2: string[];
+  groups: OccupationGroup[];
+  skills: { id: string; share: number | null; ads_matching: number | null; ads_total: number | null; date: string | null; score: number | null }[];
+}
+
 export interface MarketSnapshot {
   configured: boolean;
   generatedAt?: string;
@@ -81,6 +95,8 @@ export interface MarketSnapshot {
   skills?: SkillData[];
   vacancies?: { dataset: string; source: string; series: { key: string; geo: string; label: string; unit: string; points: { period: string; value: number }[] }[] };
   wef?: { source: string; url: string; period: string };
+  occupationGroups?: Record<string, OccupationGroup>;
+  careers?: Record<string, CareerLive>;
 }
 
 export interface Fact {
@@ -189,3 +205,5 @@ export const CONFIDENCE_LABELS: Record<Confidence, string> = {
   low: 'ниска',
   insufficient: 'недостатъчно данни',
 };
+
+export const fmtSigned = (x: number, digits = 1) => `${x > 0 ? '+' : ''}${x.toFixed(digits).replace('.', ',')}`;

@@ -98,6 +98,49 @@ export const CAREER_SKILLS = {
   'meta-worldbuilder': ['xr-3d', 'ux-design', 'software-engineering', 'creativity'],
 };
 
+// Editorial fallback: ISCO-08 2-digit groups where each skill is mainly used. Used ONLY for skills that
+// have no ESCO occupation links yet (e.g. while the ESCO API is unavailable), so the employment trend
+// (Eurostat) and forecast (Cedefop) of those groups can still be shown. Cross-cutting human skills are
+// deliberately not mapped — they are used in almost every occupation.
+export const SKILL_ISCO_FALLBACK = {
+  python: ['25'], 'machine-learning': ['25', '21'], 'generative-ai': ['25'], 'data-analysis': ['25', '24', '21'],
+  sql: ['25', '35'], cloud: ['25', '35'], cybersecurity: ['25', '35'], devops: ['25', '35'], 'software-engineering': ['25'],
+  'ai-governance': ['25', '26'], 'data-privacy': ['26', '24', '25'], 'ux-design': ['21', '25'], 'xr-3d': ['21', '25'],
+  robotics: ['21', '31', '72'], 'embedded-iot': ['21', '25', '74'], 'renewable-energy': ['21', '31', '74'],
+  sustainability: ['21', '24'], 'circular-economy': ['21', '31'], bioinformatics: ['21', '25'], biotechnology: ['21', '31'],
+  'digital-health': ['22', '32'], 'systems-engineering': ['21'], 'materials-science': ['21', '31'],
+  'project-management': ['12', '13', '24'], 'digital-marketing': ['24', '33', '52'], finance: ['24', '33'],
+  teaching: ['23'], 'customer-focus': ['42', '52'], leadership: ['11', '12', '13', '14'],
+};
+
+// Links the existing careers to the closest ISCO-08 2-digit occupation groups, so the catalogue can show
+// official statistics (Eurostat) and forecasts (Cedefop) for those groups. The careers themselves are
+// emerging roles without their own statistics — the UI states that the data refers to the related groups.
+export const CAREER_ISCO = {
+  'ai-ethics': ['25', '26'],          // ICT professionals; legal, social and cultural professionals
+  'prompt-coach': ['25'],             // ICT professionals (software and applications developers, AI)
+  'carbon-engineer': ['21', '31'],    // science & engineering professionals and associate professionals
+  'bioprinting-spec': ['21', '22'],   // engineering/life-science professionals; health professionals
+  'space-architect': ['21'],          // architects and engineers (ISCO 214, 216)
+  'meta-worldbuilder': ['25', '21'],  // software developers; graphic and multimedia designers (ISCO 2166)
+};
+
+export const ISCO2_BG = {
+  11: 'Висши ръководители и законодатели', 12: 'Административни и търговски ръководители', 13: 'Ръководители в производството и специализирани услуги',
+  14: 'Ръководители в хотелиерството, търговията и др. услуги', 21: 'Специалисти по природни науки и инженерство', 22: 'Специалисти по здравеопазване',
+  23: 'Преподаватели', 24: 'Специалисти по бизнес и администрация', 25: 'Специалисти по информационни и комуникационни технологии',
+  26: 'Специалисти по право, социални дейности и култура', 31: 'Техници в областта на науката и инженерството', 32: 'Помощен персонал в здравеопазването',
+  33: 'Помощни специалисти в бизнеса и администрацията', 34: 'Помощни специалисти в правото, социалната сфера и културата',
+  35: 'Техници в областта на ИКТ', 41: 'Общи офис служители', 42: 'Служители за работа с клиенти', 43: 'Служители по счетоводна и складова отчетност',
+  44: 'Други помощни административни служители', 51: 'Работници по лични услуги', 52: 'Продавачи', 53: 'Работници по полагане на грижи',
+  54: 'Работници по охрана и безопасност', 61: 'Квалифицирани работници в селското стопанство', 62: 'Квалифицирани работници в горското и рибното стопанство',
+  71: 'Строители и сродни работници', 72: 'Металурзи, машиностроители и сродни работници', 73: 'Работници в занаятите и печатарството',
+  74: 'Работници в електротехниката и електрониката', 75: 'Работници в хранително-вкусовата, дървообработващата и текстилната промишленост',
+  81: 'Машинни оператори на стационарни съоръжения', 82: 'Монтажници', 83: 'Шофьори и оператори на подвижни съоръжения',
+  91: 'Чистачи и помощници', 92: 'Неквалифицирани работници в селското стопанство', 93: 'Неквалифицирани работници в добива, строителството и транспорта',
+  94: 'Помощници в приготвянето на храна', 95: 'Улични продавачи и услуги', 96: 'Работници по събиране на отпадъци и др.',
+};
+
 // World Economic Forum, Future of Jobs Report 2025 (published January 2025, horizon 2025–2030).
 // Qualitative, expert-survey evidence. Shown next to the data, NOT used in the numeric score.
 export const WEF_2025 = {
@@ -120,7 +163,7 @@ export const WEF_2025 = {
 // Data sources tracked by the daily job. Verified 2026-10-23 (see docs/DATA_SOURCES.md).
 export const SOURCES = [
   { id: 'esco', name: 'ESCO (European Commission)', url: 'https://esco.ec.europa.eu/', license: 'EU reuse policy (Decision 2011/833/EU)',
-    kind: 'taxonomy', update_frequency: 'версии 1–2 пъти годишно; проверка на всеки 30 дни за умение' },
+    kind: 'taxonomy', update_frequency: 'нови версии 1–2 пъти годишно; речникът се генерира в GitHub Actions' },
   { id: 'eurostat_jvs', name: 'Eurostat — Job vacancy statistics (jvs_q_nace2)', url: 'https://ec.europa.eu/eurostat/databrowser/view/jvs_q_nace2/default/table',
     license: 'Eurostat copyright notice (свободна повторна употреба с посочване)', kind: 'statistics', update_frequency: 'тримесечно' },
   { id: 'eurostat_lfs', name: 'Eurostat — Employment by occupation ISCO-08 (lfsa_egai2d)', url: 'https://ec.europa.eu/eurostat/databrowser/view/lfsa_egai2d/default/table',
