@@ -29,6 +29,15 @@ jobs:
           echo "== resource"; curl -sS -m 30 -o /tmp/b -w '%{http_code}\n' 'https://ec.europa.eu/esco/api/resource/skill?uri=http://data.europa.eu/esco/skill/ccd0a1d9-afda-43d9-b901-96344886e14d&language=en'; head -c 300 /tmp/b; echo
           echo "== portal"; curl -sS -m 30 -o /tmp/b -w '%{http_code}\n' -I 'https://esco.ec.europa.eu/en/use-esco/download'; head -c 300 /tmp/b; echo
           echo "== headers"; curl -sS -m 30 -D - -o /dev/null "$U" | head -20
+          echo "== production read-only (public anon key from the site bundle)"
+          JS=$(curl -sS https://future-jobs-orcin.vercel.app/ | grep -o '/assets/[^"]*\.js' | head -1)
+          curl -sS "https://future-jobs-orcin.vercel.app$JS" -o /tmp/app.js
+          SBURL=$(grep -o 'https://[a-z0-9]*\.supabase\.co' /tmp/app.js | head -1)
+          KEY=$(grep -oE '(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|sb_publishable_[A-Za-z0-9_-]+)' /tmp/app.js | head -1)
+          echo "supabase host found: ${SBURL:+yes} key found: ${KEY:+yes}"
+          for q in "occupation_forecasts?select=geo,isco2,occupation_label,start_year,end_year,annual_growth_pct,edition" "data_sources?select=id,last_status,last_error,data_period,records_last_run" "refresh_runs?select=run_key,trigger,status,started_at&order=started_at.desc&limit=5" "occupations?select=uri&limit=3" "skill_occupations?select=skill_id&limit=3"; do
+            echo "-- $q"; curl -sS -H "apikey: $KEY" -H "authorization: Bearer $KEY" "$SBURL/rest/v1/$q"; echo
+          done
           } > /tmp/probe.txt 2>&1
           cat /tmp/probe.txt
       - name: Build
