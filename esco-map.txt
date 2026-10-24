@@ -121,13 +121,13 @@ A communication error occurred: ""
 403
 HTTP/2 403 
 server: CloudFront
-date: Sat, 24 Oct 2026 18:21:36 GMT
+date: Sat, 24 Oct 2026 18:27:24 GMT
 content-type: text/html
 content-length: 919
 x-cache: Error from cloudfront
-via: 1.1 7162ad114a2620a596cd6cd391ad1032.cloudfront.net (CloudFront)
-x-amz-cf-pop: DFW57-P8
-x-amz-cf-id: vrZif7hD0fJQcrQu3RHsQKOpSzP1aOWwDkEJguft4SQg
+via: 1.1 77f3c89ffd619275648d49ad13868570.cloudfront.net (CloudFront)
+x-amz-cf-pop: SEA900-P10
+x-amz-cf-id: T1AV3iV0wlJw_blqJK2k6DUi9L8FD-WjsqmFeJ7Cy0
 == headers
 HTTP/1.1 307 Temporary Redirect
 Location: https://sorry.ec.europa.eu/
@@ -137,8 +137,38 @@ Connection: Keep-Alive
 Content-Type: text/html; charset=utf-8
 Content-Length: 768
 Pragma: no-cache
-Set-Cookie: rps=!AYRdHnSsxlLc53rbA+6l1zXkw7/S2ZHHCnlithJI/EahmunN5h4jI1Zb0G0pkkAHHFwWVZxS45d8o+TPrTur6Qyy4ODdaxtKy3tX/dFF; path=/; Httponly; Secure
+Set-Cookie: rps=!L8JR1I/6PiBfbArbA+6l1zXkw7/S2dyTp08oM5DYVW0CU04pWojNIqFcFxzDpmPju7TN5bsiZWHK8cYrkZGJ2RnivdS42IPLRzaqSGMH; path=/; Httponly; Secure
 
+== production read-only (public anon key from the site bundle)
+supabase host found: yes key found: yes
+-- occupation_forecasts?select=geo,isco2,occupation_label,start_year,end_year,annual_growth_pct,edition
+[{"geo":"BG","isco2":"94","occupation_label":"Food preparation assistants","start_year":2023,"end_year":2035,"annual_growth_pct":4.7,"edition":"2026"}, 
+ {"geo":"BG","isco2":"25","occupation_label":"Information and communications technology professionals","start_year":2023,"end_year":2035,"annual_growth_pct":4,"edition":"2026"}, 
+ {"geo":"BG","isco2":"82","occupation_label":"Assemblers","start_year":2023,"end_year":2035,"annual_growth_pct":2.1,"edition":"2026"}, 
+ {"geo":"BG","isco2":"96","occupation_label":"Refuse workers and other elementary workers","start_year":2023,"end_year":2035,"annual_growth_pct":1.7,"edition":"2026"}, 
+ {"geo":"BG","isco2":"33","occupation_label":"Business and administration associate professionals","start_year":2023,"end_year":2035,"annual_growth_pct":1.6,"edition":"2026"}, 
+ {"geo":"BG","isco2":"53","occupation_label":"Personal care workers","start_year":2023,"end_year":2035,"annual_growth_pct":1.6,"edition":"2026"}, 
+ {"geo":"BG","isco2":"44","occupation_label":"Other clerical support workers","start_year":2023,"end_year":2035,"annual_growth_pct":1,"edition":"2026"}, 
+ {"geo":"BG","isco2":"21","occupation_label":"Science and engineering professionals","start_year":2023,"end_year":2035,"annual_growth_pct":0.9,"edition":"2026"}, 
+ {"geo":"BG","isco2":"42","occupation_label":"Customer services clerks","start_year":2023,"end_year":2035,"annual_growth_pct":0.9,"edition":"2026"}, 
+ {"geo":"BG","isco2":"91","occupation_label":"Cleaners and helpers","start_year":2023,"end_year":2035,"annual_growth_pct":0.9,"edition":"2026"}]
+-- data_sources?select=id,last_status,last_error,data_period,records_last_run
+[{"id":"arbeitnow","last_status":"ok","last_error":null,"data_period":"2026-10-24","records_last_run":795}, 
+ {"id":"eurostat_jvs","last_status":"ok","last_error":null,"data_period":"2025-Q4","records_last_run":196}, 
+ {"id":"eurostat_lfs","last_status":"ok","last_error":null,"data_period":"2025","records_last_run":680}, 
+ {"id":"cedefop","last_status":"ok","last_error":null,"data_period":"2023–2035 (издание 2026)","records_last_run":10}, 
+ {"id":"wef","last_status":null,"last_error":null,"data_period":null,"records_last_run":null}, 
+ {"id":"esco","last_status":"error","last_error":"ESCO unavailable: ai-governance: HTTP 403 for ec.europa.eu/esco/api/search","data_period":null,"records_last_run":null}, 
+ {"id":"remotive","last_status":"ok","last_error":null,"data_period":"2026-10-24","records_last_run":10}]
+-- refresh_runs?select=run_key,trigger,status,started_at&order=started_at.desc&limit=5
+[{"run_key":"2026-10-24","trigger":"manual","status":"partial","started_at":"2026-10-24T09:40:54.167+00:00"}, 
+ {"run_key":"2026-10-24","trigger":"manual","status":"partial","started_at":"2026-10-24T08:20:21.066+00:00"}, 
+ {"run_key":"2026-10-24","trigger":"manual","status":"partial","started_at":"2026-10-24T08:19:58.059+00:00"}, 
+ {"run_key":"2026-10-24","trigger":"manual","status":"partial","started_at":"2026-10-24T08:18:48.866+00:00"}]
+-- occupations?select=uri&limit=3
+[]
+-- skill_occupations?select=skill_id&limit=3
+[]
 
 skills: 0/34, occupations: 0/0, with ISCO: 0
 warn: python: HTTP 403 for ec.europa.eu/esco/api/search
