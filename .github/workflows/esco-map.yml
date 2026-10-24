@@ -1,0 +1,25 @@
+# Rebuilds api/_data/esco-map.js from the ESCO API (which blocks Vercel's servers but works from GitHub)
+# and commits it to the branch the workflow runs on. Run it manually after a new ESCO release, or after
+# adding skills to api/_lib/catalog.js; then deploy as usual.
+name: Build ESCO map
+on:
+  workflow_dispatch:
+  push:
+    branches: ['claude/**']
+    paths: ['api/_lib/catalog.js', 'scripts/build-esco-map.mjs']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/build-esco-map.mjs
+      - name: Commit if changed
+        run: |
+          git config user.name "esco-map-bot"; git config user.email "esco-map-bot@users.noreply.github.com"
+          git add api/_data/esco-map.js
+          git diff --cached --quiet && echo "no changes" || (git commit -m "Update ESCO map" && git push)
