@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { careers, categoryNames } from '../data/careers';
 import { quizQuestions } from '../data/quiz';
+import { QUIZ_CATEGORY_KEY } from '../lib/marketData';
 import type { Category } from '../types';
 
 const CATEGORY_ORDER: Category[] = ['ai', 'green', 'biomed', 'space', 'meta'];
@@ -83,6 +84,15 @@ function QuizResult({
   onRestart: () => void;
 }) {
   const recommended = careers.filter((c) => c.category === category);
+
+  // Remembered so the skill recommendations (Топ Умения) can take the quiz result into account.
+  useEffect(() => {
+    try {
+      localStorage.setItem(QUIZ_CATEGORY_KEY, category);
+    } catch {
+      /* storage unavailable */
+    }
+  }, [category]);
 
   return (
     <div className="result">

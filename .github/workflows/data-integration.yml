@@ -1,0 +1,47 @@
+# Runs the data pipeline against the REAL sources (ESCO, Eurostat, Remotive, Arbeitnow) and a throw-away
+# local Supabase started inside the runner. It never touches the production database.
+name: Data pipeline integration
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['api/**', 'supabase/**', 'scripts/integration-check.mjs', '.github/workflows/data-integration.yml']
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with: { version: latest }
+      - name: Start a local Supabase
+        run: |
+          mkdir -p /tmp/sb && cd /tmp/sb && supabase init --force >/dev/null
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,realtime,storage-api,postgres-meta,supavisor
+          supabase status -o env | sed 's/^/SB_/' >> "$GITHUB_ENV"
+      - name: Apply existing schema + new migration (twice, to prove it is re-runnable)
+        run: |
+          DB_URL=$(echo "$SB_DB_URL" | tr -d '"')
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/schema.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261023000000_market_data.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261023000000_market_data.sql
+          psql "$DB_URL" -c "notify pgrst, 'reload schema';"
+      - name: Run integration check
+        run: |
+          export SUPABASE_URL=$(echo "$SB_API_URL" | tr -d '"')
+          export SUPABASE_SERVICE_ROLE_KEY=$(echo "${SB_SERVICE_ROLE_KEY:-$SB_SECRET_KEY}" | tr -d '"')
+          export SUPABASE_ANON_KEY=$(echo "${SB_ANON_KEY:-$SB_PUBLISHABLE_KEY}" | tr -d '"')
+          REPORT_PATH=integration-report.json node scripts/integration-check.mjs
+      - name: Summary
+        if: always()
+        run: |
+          echo '### Integration report' >> "$GITHUB_STEP_SUMMARY"
+          node -e "const r=require('./integration-report.json');for(const c of r.checks)console.log('- '+(c.ok?'✅':'❌')+' '+c.name)" >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: integration-report, path: integration-report.json, if-no-files-found: ignore }

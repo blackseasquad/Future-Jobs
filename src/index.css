@@ -614,6 +614,83 @@ button:disabled { cursor: default; opacity: 0.6; }
 
 .footer { padding: 1.5rem 1rem; border-top: 1px solid var(--border); background: var(--surface-deep); text-align: center; font-size: 0.75rem; color: var(--faint); }
 
+/* 10b. Live labour-market data ------------------------------------------- */
+.muted { color: var(--faint); }
+.source-note { margin-top: 0.75rem; font-size: 0.6875rem; line-height: 1.6; color: var(--faint); }
+.source-note a, .data-table a, .facts a, .rec a, .freshness-box a { color: var(--cyan); text-decoration: underline; text-underline-offset: 2px; }
+.data-note { padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.75rem; color: var(--muted); }
+.data-note i { margin-right: 0.375rem; color: var(--cyan); }
+
+.tag { display: inline-block; padding: 0.0625rem 0.375rem; border-radius: 0.25rem; border: 1px solid; font-size: 0.625rem; font-weight: 700; letter-spacing: 0.02em; vertical-align: middle; white-space: nowrap; }
+.tag--fact { color: var(--emerald); border-color: rgba(52, 211, 153, 0.4); }
+.tag--forecast { color: #fbbf24; border-color: rgba(251, 191, 36, 0.4); }
+.tag--model { color: #c084fc; border-color: rgba(192, 132, 252, 0.4); }
+.tag--ai { color: #f472b6; border-color: rgba(244, 114, 182, 0.4); }
+
+.status-dot { display: inline-block; width: 0.5rem; height: 0.5rem; margin-right: 0.25rem; border-radius: 50%; background: var(--faint); }
+.status-dot--ok { background: var(--emerald); }
+.status-dot--warn { background: #fbbf24; }
+.status-dot--bad { background: var(--rose); }
+
+.freshness { font-size: 0.75rem; color: var(--muted); }
+.freshness i { margin-right: 0.375rem; color: var(--cyan); }
+.freshness strong { color: var(--text); }
+.freshness--stale, .freshness--stale i { color: #fbbf24; }
+.freshness-box { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; margin-bottom: 1rem; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--surface-raised); background: rgba(2, 6, 23, 0.6); font-size: 0.75rem; }
+.freshness-box strong { display: block; color: var(--text-strong); }
+.freshness-box--stale { border-color: rgba(251, 191, 36, 0.5); }
+.freshness-box__warn { flex-basis: 100%; color: #fbbf24; }
+.freshness-box .btn { margin-left: auto; }
+
+.table-wrap { width: 100%; overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+.data-table th { padding: 0.5rem; border-bottom: 1px solid var(--border-strong); color: var(--muted); font-weight: 600; text-align: left; white-space: nowrap; }
+.data-table td { padding: 0.5rem; border-bottom: 1px solid var(--surface-raised); vertical-align: top; }
+.data-table__sub { display: block; margin-top: 0.125rem; font-size: 0.625rem; color: var(--faint); }
+.data-table__row { cursor: pointer; transition: background-color 0.15s; }
+.data-table__row:hover { background: rgba(30, 41, 59, 0.5); }
+.data-table__details td { background: rgba(2, 6, 23, 0.6); }
+.data-table--skills td:nth-child(n + 2) { white-space: nowrap; }
+
+.delta { font-weight: 700; }
+.delta--up { color: var(--emerald); }
+.delta--down { color: #f472b6; }
+
+.runs { margin-top: 1rem; font-size: 0.75rem; }
+.runs summary { cursor: pointer; color: var(--cyan); }
+.runs__list { margin-top: 0.5rem; }
+.runs__list li { padding: 0.375rem 0; border-bottom: 1px solid var(--surface-raised); }
+
+.chips--compact { margin-bottom: 1rem; }
+.chips--compact .chip { padding: 0.25rem 0.625rem; }
+
+.chart-box--sm { height: 11rem; }
+.skill-details { padding: 0.5rem 0; white-space: normal; }
+.skill-details__grid { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 0.75rem; }
+.skill-details h5 { margin-bottom: 0.5rem; font-size: 0.75rem; font-weight: 700; color: var(--text-strong); }
+.components li { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.25rem 0; }
+.components small { color: var(--faint); }
+.components__bar { position: relative; display: flex; align-items: center; gap: 0.5rem; width: 45%; }
+.components__bar span { display: block; height: 0.375rem; border-radius: 999px; background: linear-gradient(to right, #06b6d4, #a855f7); }
+.components__bar b { font-size: 0.6875rem; color: var(--text); }
+.facts li { padding: 0.25rem 0; font-size: 0.75rem; line-height: 1.6; color: #cbd5e1; }
+
+.known { margin: 1rem 0 0.5rem; }
+.known .stats__label { margin-bottom: 0.5rem; font-size: 0.75rem; }
+.rec-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+.horizons { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+.horizon { padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--surface-raised); background: rgba(2, 6, 23, 0.6); }
+.horizon h4 { margin-bottom: 0.75rem; font-size: 0.875rem; font-weight: 700; color: var(--cyan); }
+.horizon h4 i { margin-right: 0.375rem; }
+.rec-list > * + * { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--surface-raised); }
+.rec__head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; color: var(--text-strong); }
+.rec__score { font-size: 0.875rem; font-weight: 800; color: var(--cyan); white-space: nowrap; }
+.rec__why, .rec__ai, .rec__next, .rec__learn { margin-top: 0.375rem; font-size: 0.75rem; line-height: 1.6; color: #cbd5e1; }
+.rec__next i, .rec__learn i { margin-right: 0.25rem; color: var(--cyan); }
+.rec__limits { margin-top: 0.375rem; font-size: 0.6875rem; color: var(--faint); }
+.rec__limits summary { cursor: pointer; }
+.rec__limits ul { list-style: disc inside; margin-top: 0.25rem; }
+
 /* 11. Responsive ----------------------------------------------------------- */
 @media (min-width: 640px) {
   .main { padding-left: 1.5rem; padding-right: 1.5rem; }
@@ -637,6 +714,12 @@ button:disabled { cursor: default; opacity: 0.6; }
   .careers-grid { grid-template-columns: repeat(2, 1fr); }
   .three-col { grid-template-columns: repeat(3, 1fr); }
   .two-col { grid-template-columns: repeat(2, 1fr); }
+  .chips--compact { justify-content: flex-start; width: 100%; }
+  .skill-details__grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (min-width: 1024px) {
+  .horizons { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (min-width: 1024px) {
