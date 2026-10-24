@@ -17,7 +17,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
-      - run: node scripts/build-esco-map.mjs
+      - name: Build
+        run: |
+          set -o pipefail
+          node scripts/build-esco-map.mjs 2>&1 | tee /tmp/esco-map.log
+      # TEMPORARY: publish the build log while debugging (removed before merge)
+      - name: Publish log
+        if: always()
+        run: |
+          git config user.name "esco-map-bot"; git config user.email "esco-map-bot@users.noreply.github.com"
+          cp /tmp/esco-map.log esco-map.log && git add esco-map.log && git commit -m "ESCO map build log" && git push || true
       - name: Commit if changed
         run: |
           git config user.name "esco-map-bot"; git config user.email "esco-map-bot@users.noreply.github.com"
