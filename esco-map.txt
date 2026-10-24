@@ -1,3 +1,144 @@
+== UA: FutureJobs/1.0 (+https://github.com/blackseasquad/Future-Jobs)
+307
+<HTML><HEAD>
+<TITLE>Network Error</TITLE>
+</HEAD>
+<BODY>
+<FONT face="Helvetica">
+<big><strong></strong></big><BR>
+</FONT>
+<blockquote>
+<TABLE border=0 cellPadding=1 width="80%">
+<TR><TD>
+<FONT face="Helvetica">
+<big>Network Error (tcp_error)</big>
+<BR>
+<BR>
+</FONT>
+</TD></TR>
+<TR><TD>
+<FONT face="Helvetica">
+A communication error occurred: ""
+</FONT>
+</TD></TR>
+<TR><TD>
+<FONT
+== UA: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36
+307
+<HTML><HEAD>
+<TITLE>Network Error</TITLE>
+</HEAD>
+<BODY>
+<FONT face="Helvetica">
+<big><strong></strong></big><BR>
+</FONT>
+<blockquote>
+<TABLE border=0 cellPadding=1 width="80%">
+<TR><TD>
+<FONT face="Helvetica">
+<big>Network Error (tcp_error)</big>
+<BR>
+<BR>
+</FONT>
+</TD></TR>
+<TR><TD>
+<FONT face="Helvetica">
+A communication error occurred: ""
+</FONT>
+</TD></TR>
+<TR><TD>
+<FONT
+== UA: curl/8.5.0
+307
+<HTML><HEAD>
+<TITLE>Network Error</TITLE>
+</HEAD>
+<BODY>
+<FONT face="Helvetica">
+<big><strong></strong></big><BR>
+</FONT>
+<blockquote>
+<TABLE border=0 cellPadding=1 width="80%">
+<TR><TD>
+<FONT face="Helvetica">
+<big>Network Error (tcp_error)</big>
+<BR>
+<BR>
+</FONT>
+</TD></TR>
+<TR><TD>
+<FONT face="Helvetica">
+A communication error occurred: ""
+</FONT>
+</TD></TR>
+<TR><TD>
+<FONT
+== no accept header
+307
+<HTML><HEAD>
+<TITLE>Network Error</TITLE>
+</HEAD>
+<BODY>
+<FONT face="Helvetica">
+<big><strong></strong></big><BR>
+</FONT>
+<blockquote>
+<TABLE border=0 cellPadding=1 width="80%">
+<TR><TD>
+<FONT face="Helvetica">
+<big>Network Error (tcp_error)</big>
+<BR>
+<BR>
+</FONT>
+</TD></TR>
+<TR><TD>
+<FONT face="Helvetica">
+A communication error occurred: ""
+</FONT>
+</TD></TR>
+<TR><TD>
+<FONT
+== resource
+307
+<HTML><HEAD>
+<TITLE>Network Error</TITLE>
+</HEAD>
+<BODY>
+<FONT face="Helvetica">
+<big><strong></strong></big><BR>
+</FONT>
+<blockquote>
+<TABLE border=0 cellPadding=1 width="80%">
+<TR><TD>
+<FONT face="Helvetica">
+<big>Network Error (tcp_error)</big>
+<BR>
+<BR>
+</FONT>
+</TD></TR>
+<TR><TD
+== portal
+403
+HTTP/2 403 
+server: CloudFront
+date: Sat, 24 Oct 2026 18:21:36 GMT
+content-type: text/html
+content-length: 919
+x-cache: Error from cloudfront
+via: 1.1 7162ad114a2620a596cd6cd391ad1032.cloudfront.net (CloudFront)
+x-amz-cf-pop: DFW57-P8
+x-amz-cf-id: vrZif7hD0fJQcrQu3RHsQKOpSzP1aOWwDkEJguft4SQg
+== headers
+HTTP/1.1 307 Temporary Redirect
+Location: https://sorry.ec.europa.eu/
+Cache-Control: no-cache
+X-XSS-Protection: 1
+Connection: Keep-Alive
+Content-Type: text/html; charset=utf-8
+Content-Length: 768
+Pragma: no-cache
+Set-Cookie: rps=!AYRdHnSsxlLc53rbA+6l1zXkw7/S2ZHHCnlithJI/EahmunN5h4jI1Zb0G0pkkAHHFwWVZxS45d8o+TPrTur6Qyy4ODdaxtKy3tX/dFF; path=/; Httponly; Secure
+
 
 skills: 0/34, occupations: 0/0, with ISCO: 0
 warn: python: HTTP 403 for ec.europa.eu/esco/api/search
