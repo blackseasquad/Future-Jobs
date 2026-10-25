@@ -100,10 +100,9 @@ const brokenFetch = async (u, init) => {
 const run3 = await runRefresh({ store, now, trigger: 'test', force: true, fetchImpl: brokenFetch });
 const { data: arb } = await service.from('data_sources').select('last_status, last_error, last_success_at').eq('id', 'arbeitnow').single();
 const c3 = await counts();
-const { data: scoresAfter } = await service.from('skill_scores').select('score, inputs').not('score', 'is', null).limit(1);
 check('unreachable sources -> partial run, errors logged, previous data kept',
   run3.status === 'partial' && arb.last_status === 'error' && Boolean(arb.last_success_at)
-  && c3.skill_demand_snapshots === c2.skill_demand_snapshots && c3.stat_series === c2.stat_series && scoresAfter?.length === 1,
+  && c3.skill_demand_snapshots === c2.skill_demand_snapshots && c3.stat_series === c2.stat_series && c3.skill_scores === c2.skill_scores,
   { status: run3.status, arb, jobs_combined: run3.results.jobs_combined, demandRows: c3.skill_demand_snapshots, statRows: c3.stat_series });
 
 // 4) public read + RLS
