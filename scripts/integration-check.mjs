@@ -24,7 +24,13 @@ const service = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth:
 const anon = createClient(url, process.env.SUPABASE_ANON_KEY, { auth: { persistSession: false } });
 const store = createSupabaseStore(service);
 const report = { startedAt: new Date().toISOString(), checks: [] };
-const check = (name, ok, details) => { report.checks.push({ name, ok: Boolean(ok), details }); console.log(`${ok ? 'PASS' : 'FAIL'} ${name}`, details ?? ''); };
+const check = (name, ok, details) => {
+  report.checks.push({ name, ok: Boolean(ok), details });
+  console.log(`${ok ? 'PASS' : 'FAIL'} ${name}`, details ?? '');
+  // GitHub Actions annotation, visible in the run summary without opening the logs
+  if (!ok && process.env.GITHUB_ACTIONS) console.log(`::error title=${name}::${JSON.stringify(details ?? null).slice(0, 900).replace(/[\r\n%]/g, ' ')}`);
+};
+process.on('unhandledRejection', (e) => { if (process.env.GITHUB_ACTIONS) console.log(`::error title=crash::${String(e?.stack || e).slice(0, 900).replace(/[\r\n%]/g, ' ')}`); process.exit(1); });
 
 // Cache real HTTP responses so re-runs use identical data (and Remotive is called once, per its terms).
 const cache = new Map();
