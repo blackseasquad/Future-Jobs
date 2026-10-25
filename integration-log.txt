@@ -1,0 +1,40 @@
+    {
+      skill: 'communication',
+      model: [Object],
+      facts: [Array],
+      next: [Array]
+    },
+    { skill: 'devops', model: [Object], facts: [Array], next: [Array] }
+  ]
+}
+PASS forecast built from real data and saved {
+  groups: [
+    [
+      '25',
+      'Специалисти по информационни и комуникационни технологии',
+      100,
+      92
+    ],
+    [ '21', 'Специалисти по природни науки и инженерство', 90, 29 ],
+    [ '24', 'Специалисти по бизнес и администрация', 29, 88 ]
+  ],
+  careers: [ 'ai-ethics', 'carbon-engineer' ],
+  horizons: {
+    short: [ 'software-engineering', 'generative-ai', 'sustainability' ],
+    medium: [ 'devops', 'cloud', 'sql' ],
+    long: [ 'data-privacy', 'data-analysis', 'ai-governance' ]
+  },
+  plan: 'При около 5 ч. седмично реалистичният ритъм е по едно ново умение на всеки 3 месеца — започнете с „Софтуерна разработка“.'
+}
+PASS forecast reopened by token 
+PASS e-mail logged by hash only [
+  {
+    email_hash: 'c36cb15c8aa0354569ec5e97713227803d6236e3ad973d1334d63243f4b5e6c5',
+    status: 'sent'
+  }
+]
+PASS anon cannot read saved reports (RLS) 0
+PASS cron handler rejects wrong secret 
+[refresh] esco failed: Речникът ESCO още не е генериран (ESCO API е недостъпно); използва се редакционна връзка умение → ISCO група
+PASS cron handler accepts the secret (runs or skips by Sofia time / once-per-day guard) success
+ALL CHECKS PASSED

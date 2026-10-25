@@ -1,0 +1,16 @@
+== npm test
+# pass 38
+# fail 0
+exit=0
+== typecheck
+exit=0
+== build
+
+[39m
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                 [39m[1m[2m  0.86 kB[22m[1m[22m[2m │ gzip:   0.53 kB[22m
+[2mdist/[22m[2massets/[22m[35mindex-C3NQUsHe.css  [39m[1m[2m 31.93 kB[22m[1m[22m[2m │ gzip:   6.71 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-DWzW8DWG.js   [39m[1m[2m419.04 kB[22m[1m[22m[2m │ gzip: 142.17 kB[22m
+[32m✓ built in 1.56s[39m
+exit=0

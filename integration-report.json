@@ -1,0 +1,741 @@
+{
+  "startedAt": "2026-10-25T12:12:11.807Z",
+  "checks": [
+    {
+      "name": "real source works: eurostat_jvs",
+      "ok": true,
+      "details": {
+        "status": "ok",
+        "records": 196,
+        "period": "2025-Q4",
+        "sourceUpdated": "2026-03-20T22:00:00.000Z"
+      }
+    },
+    {
+      "name": "real source works: eurostat_lfs",
+      "ok": true,
+      "details": {
+        "status": "ok",
+        "records": 680,
+        "period": "2025",
+        "sourceUpdated": "2026-09-10T21:00:00.000Z"
+      }
+    },
+    {
+      "name": "real source works: remotive",
+      "ok": true,
+      "details": {
+        "status": "ok",
+        "records": 10,
+        "period": "2026-10-25",
+        "warning": "малка извадка (10 обяви) — включени само в общата извадка"
+      }
+    },
+    {
+      "name": "real source works: arbeitnow",
+      "ok": true,
+      "details": {
+        "status": "ok",
+        "records": 859,
+        "period": "2026-10-25"
+      }
+    },
+    {
+      "name": "demand history stored",
+      "ok": true,
+      "details": 68
+    },
+    {
+      "name": "Eurostat series stored",
+      "ok": true,
+      "details": 876
+    },
+    {
+      "name": "scores computed",
+      "ok": true,
+      "details": {
+        "status": "ok",
+        "computed": 34,
+        "withScore": 25,
+        "demandDate": "2026-10-25",
+        "forecastsAvailable": true
+      }
+    },
+    {
+      "name": "skills linked to occupation groups (bundled ESCO map or editorial fallback)",
+      "ok": true,
+      "details": {
+        "esco": {
+          "status": "error",
+          "error": "Речникът ESCO още не е генериран (ESCO API е недостъпно); използва се редакционна връзка умение → ISCO група"
+        },
+        "occupation_source": "editorial"
+      }
+    },
+    {
+      "name": "catalogue careers carry real Eurostat data",
+      "ok": true,
+      "details": {
+        "ai-ethics": [
+          "25:7.07",
+          "26:2.51"
+        ],
+        "prompt-coach": [
+          "25:7.07"
+        ],
+        "carbon-engineer": [
+          "21:4.87",
+          "31:-1.46"
+        ],
+        "bioprinting-spec": [
+          "21:4.87",
+          "22:2.82"
+        ],
+        "space-architect": [
+          "21:4.87"
+        ],
+        "meta-worldbuilder": [
+          "25:7.07",
+          "21:4.87"
+        ]
+      }
+    },
+    {
+      "name": "re-run does not duplicate rows",
+      "ok": true,
+      "details": {
+        "grew": [],
+        "c1": {
+          "data_sources": 7,
+          "skills": 34,
+          "occupations": 0,
+          "skill_occupations": 0,
+          "skill_demand_snapshots": 68,
+          "skill_cooccurrence": 872,
+          "stat_series": 876,
+          "skill_scores": 34,
+          "refresh_runs": 1
+        },
+        "c2": {
+          "data_sources": 7,
+          "skills": 34,
+          "occupations": 0,
+          "skill_occupations": 0,
+          "skill_demand_snapshots": 68,
+          "skill_cooccurrence": 872,
+          "stat_series": 876,
+          "skill_scores": 34,
+          "refresh_runs": 2
+        }
+      }
+    },
+    {
+      "name": "unreachable sources -> partial run, errors logged, previous data kept",
+      "ok": true,
+      "details": {
+        "status": "partial",
+        "arb": {
+          "last_status": "error",
+          "last_error": "fetch failed: getaddrinfo ENOTFOUND www.arbeitnow.com",
+          "last_success_at": "2026-10-25T12:12:21.15+00:00"
+        },
+        "jobs_combined": {
+          "status": "skipped",
+          "reason": "not enough ads today (10); previous snapshot kept"
+        },
+        "demandRows": 68,
+        "statRows": 876
+      }
+    },
+    {
+      "name": "anon can read snapshot",
+      "ok": true,
+      "details": {
+        "skills": 34,
+        "stale": false
+      }
+    },
+    {
+      "name": "anon cannot write (RLS)",
+      "ok": true,
+      "details": "new row violates row-level security policy for table \"skills\""
+    },
+    {
+      "name": "anon cannot modify run log (RLS)",
+      "ok": true,
+      "details": {
+        "tamperedCount": 0
+      }
+    },
+    {
+      "name": "recommendations built from real data",
+      "ok": true,
+      "details": {
+        "available": true,
+        "reason": null,
+        "items": [
+          {
+            "skill": "software-engineering",
+            "model": {
+              "horizon_score": 97,
+              "future_skills_score": 87,
+              "confidence": "medium",
+              "coverage": 0.7,
+              "methodology": "fss-1.0",
+              "computed_date": "2026-10-25"
+            },
+            "facts": [
+              "Споменава се в 183 от 869 анализирани обяви (21,1%).",
+              "Заетостта в свързаните професии в ЕС се е променяла средно с +7,1% годишно."
+            ],
+            "next": [
+              "devops",
+              "cloud",
+              "sql"
+            ]
+          },
+          {
+            "skill": "communication",
+            "model": {
+              "horizon_score": 94,
+              "future_skills_score": null,
+              "confidence": "insufficient",
+              "coverage": 0.35,
+              "methodology": "fss-1.0",
+              "computed_date": "2026-10-25"
+            },
+            "facts": [
+              "Споменава се в 175 от 869 анализирани обяви (20,1%)."
+            ],
+            "next": [
+              "leadership",
+              "adaptability",
+              "analytical-thinking"
+            ]
+          },
+          {
+            "skill": "devops",
+            "model": {
+              "horizon_score": 85,
+              "future_skills_score": 79,
+              "confidence": "medium",
+              "coverage": 0.7,
+              "methodology": "fss-1.0",
+              "computed_date": "2026-10-25"
+            },
+            "facts": [
+              "Споменава се в 138 от 869 анализирани обяви (15,9%).",
+              "Заетостта в свързаните професии в ЕС се е променяла средно с +4,5% годишно."
+            ],
+            "next": [
+              "software-engineering",
+              "cloud",
+              "sql"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "forecast built from real data and saved",
+      "ok": true,
+      "details": {
+        "groups": [
+          [
+            "25",
+            "Специалисти по информационни и комуникационни технологии",
+            100,
+            92
+          ],
+          [
+            "21",
+            "Специалисти по природни науки и инженерство",
+            90,
+            29
+          ],
+          [
+            "24",
+            "Специалисти по бизнес и администрация",
+            29,
+            88
+          ]
+        ],
+        "careers": [
+          "ai-ethics",
+          "carbon-engineer"
+        ],
+        "horizons": {
+          "short": [
+            "software-engineering",
+            "generative-ai",
+            "sustainability"
+          ],
+          "medium": [
+            "devops",
+            "cloud",
+            "sql"
+          ],
+          "long": [
+            "data-privacy",
+            "data-analysis",
+            "ai-governance"
+          ]
+        },
+        "plan": "При около 5 ч. седмично реалистичният ритъм е по едно ново умение на всеки 3 месеца — започнете с „Софтуерна разработка“."
+      }
+    },
+    {
+      "name": "forecast reopened by token",
+      "ok": true
+    },
+    {
+      "name": "e-mail logged by hash only",
+      "ok": true,
+      "details": [
+        {
+          "email_hash": "c36cb15c8aa0354569ec5e97713227803d6236e3ad973d1334d63243f4b5e6c5",
+          "status": "sent"
+        }
+      ]
+    },
+    {
+      "name": "anon cannot read saved reports (RLS)",
+      "ok": true,
+      "details": 0
+    },
+    {
+      "name": "cron handler rejects wrong secret",
+      "ok": true
+    },
+    {
+      "name": "cron handler accepts the secret (runs or skips by Sofia time / once-per-day guard)",
+      "ok": true,
+      "details": "success"
+    }
+  ],
+  "run1": {
+    "status": "success",
+    "runId": 1,
+    "runKey": "2026-10-25",
+    "durationMs": 6672,
+    "results": {
+      "esco": {
+        "status": "error",
+        "error": "Речникът ESCO още не е генериран (ESCO API е недостъпно); използва се редакционна връзка умение → ISCO група"
+      },
+      "remotive": {
+        "status": "ok",
+        "records": 10,
+        "period": "2026-10-25",
+        "warning": "малка извадка (10 обяви) — включени само в общата извадка"
+      },
+      "arbeitnow": {
+        "status": "ok",
+        "records": 859,
+        "period": "2026-10-25"
+      },
+      "jobs_combined": {
+        "status": "ok",
+        "ads": 869,
+        "sources": [
+          "remotive",
+          "arbeitnow"
+        ]
+      },
+      "eurostat_jvs": {
+        "status": "ok",
+        "records": 196,
+        "period": "2025-Q4",
+        "sourceUpdated": "2026-03-20T22:00:00.000Z"
+      },
+      "eurostat_lfs": {
+        "status": "ok",
+        "records": 680,
+        "period": "2025",
+        "sourceUpdated": "2026-09-10T21:00:00.000Z"
+      },
+      "scores": {
+        "status": "ok",
+        "computed": 34,
+        "withScore": 25,
+        "demandDate": "2026-10-25",
+        "forecastsAvailable": true
+      }
+    }
+  },
+  "countsAfterRun1": {
+    "data_sources": 7,
+    "skills": 34,
+    "occupations": 0,
+    "skill_occupations": 0,
+    "skill_demand_snapshots": 68,
+    "skill_cooccurrence": 872,
+    "stat_series": 876,
+    "skill_scores": 34,
+    "refresh_runs": 1
+  },
+  "topDemand": [
+    {
+      "skill_id": "leadership",
+      "ads_matching": 252,
+      "ads_total": 869,
+      "share": 0.289988
+    },
+    {
+      "skill_id": "software-engineering",
+      "ads_matching": 183,
+      "ads_total": 869,
+      "share": 0.210587
+    },
+    {
+      "skill_id": "communication",
+      "ads_matching": 175,
+      "ads_total": 869,
+      "share": 0.201381
+    },
+    {
+      "skill_id": "foreign-languages",
+      "ads_matching": 161,
+      "ads_total": 869,
+      "share": 0.18527
+    },
+    {
+      "skill_id": "python",
+      "ads_matching": 153,
+      "ads_total": 869,
+      "share": 0.176064
+    },
+    {
+      "skill_id": "devops",
+      "ads_matching": 138,
+      "ads_total": 869,
+      "share": 0.158803
+    },
+    {
+      "skill_id": "cloud",
+      "ads_matching": 135,
+      "ads_total": 869,
+      "share": 0.155351
+    },
+    {
+      "skill_id": "project-management",
+      "ads_matching": 131,
+      "ads_total": 869,
+      "share": 0.150748
+    },
+    {
+      "skill_id": "adaptability",
+      "ads_matching": 127,
+      "ads_total": 869,
+      "share": 0.146145
+    },
+    {
+      "skill_id": "digital-marketing",
+      "ads_matching": 122,
+      "ads_total": 869,
+      "share": 0.140391
+    }
+  ],
+  "jvsSample": [
+    {
+      "series_key": "JVR|B-S",
+      "geo": "EU27_2020",
+      "period": "2025-Q4",
+      "value": 2
+    },
+    {
+      "series_key": "JVR|B-S",
+      "geo": "BG",
+      "period": "2025-Q4",
+      "value": 0.8
+    },
+    {
+      "series_key": "JVR|B-S",
+      "geo": "BG",
+      "period": "2025-Q3",
+      "value": 0.8
+    },
+    {
+      "series_key": "JVR|B-S",
+      "geo": "EU27_2020",
+      "period": "2025-Q3",
+      "value": 2
+    },
+    {
+      "series_key": "JVR|B-S",
+      "geo": "BG",
+      "period": "2025-Q2",
+      "value": 0.9
+    },
+    {
+      "series_key": "JVR|B-S",
+      "geo": "EU27_2020",
+      "period": "2025-Q2",
+      "value": 2.1
+    }
+  ],
+  "occupationSample": [],
+  "countsAfterRun2": {
+    "data_sources": 7,
+    "skills": 34,
+    "occupations": 0,
+    "skill_occupations": 0,
+    "skill_demand_snapshots": 68,
+    "skill_cooccurrence": 872,
+    "stat_series": 876,
+    "skill_scores": 34,
+    "refresh_runs": 2
+  },
+  "recommendations": {
+    "short": {
+      "available": true,
+      "reason": null,
+      "items": [
+        {
+          "skill": "software-engineering",
+          "model": {
+            "horizon_score": 97,
+            "future_skills_score": 87,
+            "confidence": "medium",
+            "coverage": 0.7,
+            "methodology": "fss-1.0",
+            "computed_date": "2026-10-25"
+          },
+          "facts": [
+            "Споменава се в 183 от 869 анализирани обяви (21,1%).",
+            "Заетостта в свързаните професии в ЕС се е променяла средно с +7,1% годишно."
+          ],
+          "next": [
+            "devops",
+            "cloud",
+            "sql"
+          ]
+        },
+        {
+          "skill": "communication",
+          "model": {
+            "horizon_score": 94,
+            "future_skills_score": null,
+            "confidence": "insufficient",
+            "coverage": 0.35,
+            "methodology": "fss-1.0",
+            "computed_date": "2026-10-25"
+          },
+          "facts": [
+            "Споменава се в 175 от 869 анализирани обяви (20,1%)."
+          ],
+          "next": [
+            "leadership",
+            "adaptability",
+            "analytical-thinking"
+          ]
+        },
+        {
+          "skill": "devops",
+          "model": {
+            "horizon_score": 85,
+            "future_skills_score": 79,
+            "confidence": "medium",
+            "coverage": 0.7,
+            "methodology": "fss-1.0",
+            "computed_date": "2026-10-25"
+          },
+          "facts": [
+            "Споменава се в 138 от 869 анализирани обяви (15,9%).",
+            "Заетостта в свързаните професии в ЕС се е променяла средно с +4,5% годишно."
+          ],
+          "next": [
+            "software-engineering",
+            "cloud",
+            "sql"
+          ]
+        }
+      ]
+    },
+    "medium": {
+      "available": true,
+      "reason": null,
+      "items": [
+        {
+          "skill": "generative-ai",
+          "model": {
+            "horizon_score": 86,
+            "future_skills_score": 80,
+            "confidence": "medium",
+            "coverage": 0.7,
+            "methodology": "fss-1.0",
+            "computed_date": "2026-10-25"
+          },
+          "facts": [
+            "Споменава се в 103 от 869 анализирани обяви (11,9%).",
+            "Заетостта в свързаните професии в ЕС се е променяла средно с +7,1% годишно."
+          ],
+          "next": [
+            "software-engineering",
+            "devops",
+            "cloud"
+          ]
+        },
+        {
+          "skill": "machine-learning",
+          "model": {
+            "horizon_score": 78,
+            "future_skills_score": 60,
+            "confidence": "medium",
+            "coverage": 0.7,
+            "methodology": "fss-1.0",
+            "computed_date": "2026-10-25"
+          },
+          "facts": [
+            "Споменава се в 60 от 869 анализирани обяви (6,9%).",
+            "Заетостта в свързаните професии в ЕС се е променяла средно с +6,0% годишно."
+          ],
+          "next": [
+            "generative-ai",
+            "software-engineering",
+            "devops"
+          ]
+        },
+        {
+          "skill": "cloud",
+          "model": {
+            "horizon_score": 71,
+            "future_skills_score": 78,
+            "confidence": "medium",
+            "coverage": 0.7,
+            "methodology": "fss-1.0",
+            "computed_date": "2026-10-25"
+          },
+          "facts": [
+            "Споменава се в 135 от 869 анализирани обяви (15,5%).",
+            "Заетостта в свързаните професии в ЕС се е променяла средно с +4,5% годишно."
+          ],
+          "next": [
+            "devops",
+            "software-engineering",
+            "sql"
+          ]
+        }
+      ]
+    },
+    "long": {
+      "available": true,
+      "reason": null,
+      "items": [
+        {
+          "skill": "data-privacy",
+          "model": {
+            "horizon_score": 79,
+            "future_skills_score": 70,
+            "confidence": "medium",
+            "coverage": 0.7,
+            "methodology": "fss-1.0",
+            "computed_date": "2026-10-25"
+          },
+          "facts": [
+            "Споменава се в 87 от 869 анализирани обяви (10,0%).",
+            "Заетостта в свързаните професии в ЕС се е променяла средно с +5,0% годишно."
+          ],
+          "next": [
+            "leadership",
+            "communication",
+            "cloud"
+          ]
+        },
+        {
+          "skill": "sql",
+          "model": {
+            "horizon_score": 75,
+            "future_skills_score": 73,
+            "confidence": "medium",
+            "coverage": 0.7,
+            "methodology": "fss-1.0",
+            "computed_date": "2026-10-25"
+          },
+          "facts": [
+            "Споменава се в 115 от 869 анализирани обяви (13,2%).",
+            "Заетостта в свързаните професии в ЕС се е променяла средно с +4,5% годишно."
+          ],
+          "next": [
+            "software-engineering",
+            "devops",
+            "cloud"
+          ]
+        },
+        {
+          "skill": "data-analysis",
+          "model": {
+            "horizon_score": 58,
+            "future_skills_score": 57,
+            "confidence": "medium",
+            "coverage": 0.7,
+            "methodology": "fss-1.0",
+            "computed_date": "2026-10-25"
+          },
+          "facts": [
+            "Споменава се в 76 от 869 анализирани обяви (8,7%).",
+            "Заетостта в свързаните професии в ЕС се е променяла средно с +5,8% годишно."
+          ],
+          "next": [
+            "sql",
+            "leadership",
+            "communication"
+          ]
+        }
+      ]
+    }
+  },
+  "forecast": {
+    "groups": [
+      [
+        "25",
+        "Специалисти по информационни и комуникационни технологии",
+        100,
+        92
+      ],
+      [
+        "21",
+        "Специалисти по природни науки и инженерство",
+        90,
+        29
+      ],
+      [
+        "24",
+        "Специалисти по бизнес и администрация",
+        29,
+        88
+      ]
+    ],
+    "careers": [
+      "ai-ethics",
+      "carbon-engineer"
+    ],
+    "horizons": {
+      "short": [
+        "software-engineering",
+        "generative-ai",
+        "sustainability"
+      ],
+      "medium": [
+        "devops",
+        "cloud",
+        "sql"
+      ],
+      "long": [
+        "data-privacy",
+        "data-analysis",
+        "ai-governance"
+      ]
+    },
+    "plan": "При около 5 ч. седмично реалистичният ритъм е по едно ново умение на всеки 3 месеца — започнете с „Софтуерна разработка“."
+  },
+  "cronResponse": {
+    "status": 200,
+    "body": {
+      "status": "success",
+      "durationMs": 5743
+    }
+  },
+  "finishedAt": "2026-10-25T12:12:29.652Z",
+  "ok": true
+}

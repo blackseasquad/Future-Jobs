@@ -1,0 +1,2 @@
+desktop: saved forecast shown after reload = true
+mobile: saved forecast shown after reload = true
