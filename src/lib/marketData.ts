@@ -77,6 +77,7 @@ export interface OccupationGroup {
   label_bg: string;
   eurostat: Partial<Record<'EU27_2020' | 'BG', { cagr_pct: number | null; from: string | null; to: string | null; employed_thousands: number | null; period: string | null }>>;
   cedefop: { geo: string; annual_growth_pct: number; period: string; edition: string }[];
+  skills?: string[];
 }
 
 export interface CareerLive {
@@ -111,7 +112,7 @@ export interface RecommendationItem {
   label_en: string;
   esco_uri: string | null;
   model: { horizon_score: number; future_skills_score: number | null; confidence: Confidence; coverage: number; methodology: string | null; computed_date: string | null };
-  relevance: { type: 'favorites' | 'quiz' | 'complements'; careers?: string[]; label?: string; skills?: string[] }[];
+  relevance: { type: 'favorites' | 'quiz' | 'complements' | 'answers'; careers?: string[]; label?: string; skills?: string[]; answers?: string[] }[];
   facts: Fact[];
   forecasts: Fact[];
   next_skills: { id: string; label_bg: string }[];

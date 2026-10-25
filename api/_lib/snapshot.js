@@ -1,7 +1,7 @@
 // Builds the public, read-only snapshot shown in the UI (no personal data).
 
 import { JVS_SECTORS } from './sources.js';
-import { CAREER_ISCO, CAREER_SKILLS, ISCO2_BG, WEF_2025 } from './catalog.js';
+import { CAREER_ISCO, CAREER_SKILLS, ISCO2_BG, SKILL_ISCO_FALLBACK, WEF_2025 } from './catalog.js';
 import { employmentTrendByIsco2 } from './pipeline.js';
 import { METHODOLOGY_VERSION, WEIGHTS } from './scoring.js';
 import { addDays, sofiaClock } from './util.js';
@@ -9,9 +9,9 @@ import { addDays, sofiaClock } from './util.js';
 export const STALE_AFTER_HOURS = 36;
 
 export async function buildSnapshot(store, now = new Date()) {
-  const [sources, runs, skills, scores, jvs, lfs, forecasts] = await Promise.all([
+  const [sources, runs, skills, scores, jvs, lfs, forecasts, skillOcc] = await Promise.all([
     store.getSources(), store.getRuns(15), store.getSkills(), store.getLatestScores(), store.getStatSeries('jvs_q_nace2'),
-    store.getStatSeries('lfsa_egai2d'), store.getForecasts(),
+    store.getStatSeries('lfsa_egai2d'), store.getForecasts(), store.getSkillOccupations(),
   ]);
   const today = sofiaClock(now).date;
   const history = await store.getDemandHistory('jobs_combined', addDays(today, -120));
@@ -35,7 +35,7 @@ export async function buildSnapshot(store, now = new Date()) {
   }
   for (const s of series.values()) s.points.sort((a, b) => a.period.localeCompare(b.period));
 
-  const occupationGroups = buildOccupationGroups(lfs, forecasts);
+  const occupationGroups = buildOccupationGroups(lfs, forecasts, skillsByIsco2(skills, skillOcc));
   const careers = buildCareers(occupationGroups, scoreById);
 
   return {
@@ -76,8 +76,11 @@ export async function buildSnapshot(store, now = new Date()) {
 }
 
 /** Eurostat employment trend + latest level and Cedefop forecasts per ISCO-08 2-digit group. */
-export function buildOccupationGroups(lfs, forecasts) {
-  const codes = new Set([...Object.values(CAREER_ISCO).flat(), ...forecasts.map((f) => f.isco2)]);
+export function buildOccupationGroups(lfs, forecasts, skillMap = new Map()) {
+  const codes = new Set([
+    ...Object.values(CAREER_ISCO).flat(), ...forecasts.map((f) => f.isco2),
+    ...lfs.map((r) => (/^OC\d\d$/.test(r.series_key) ? r.series_key.slice(2) : null)).filter(Boolean),
+  ]);
   const trendEU = employmentTrendByIsco2(lfs, 'EU27_2020');
   const trendBG = employmentTrendByIsco2(lfs, 'BG');
   const latest = (code, geo) => lfs.filter((r) => r.series_key === `OC${code}` && r.geo === geo)
@@ -98,9 +101,19 @@ export function buildOccupationGroups(lfs, forecasts) {
     const cedefop = forecasts.filter((f) => f.isco2 === code)
       .map((f) => ({ geo: f.geo, annual_growth_pct: Number(f.annual_growth_pct), period: `${f.start_year}–${f.end_year}`, edition: f.edition }))
       .sort((a, b) => (a.geo === 'EU27_2020' ? -1 : 1) - (b.geo === 'EU27_2020' ? -1 : 1));
-    out[code] = { isco2: code, label_bg: ISCO2_BG[Number(code)] || `ISCO ${code}`, eurostat, cedefop };
+    out[code] = { isco2: code, label_bg: ISCO2_BG[Number(code)] || `ISCO ${code}`, eurostat, cedefop, skills: skillMap.get(code) || [] };
   }
   return out;
+}
+
+/** Tracked skills per ISCO group: ESCO links when available, otherwise the editorial fallback. */
+export function skillsByIsco2(skills, skillOcc) {
+  const out = new Map();
+  const add = (code, id) => { if (!code) return; if (!out.has(code)) out.set(code, new Set()); out.get(code).add(id); };
+  const withEsco = new Set();
+  for (const r of skillOcc) if (r.isco2) { add(r.isco2, r.skill_id); withEsco.add(r.skill_id); }
+  for (const s of skills) if (!withEsco.has(s.id)) (SKILL_ISCO_FALLBACK[s.id] || []).forEach((c) => add(c, s.id));
+  return new Map([...out].map(([k, v]) => [k, [...v].sort()]));
 }
 
 /** Real-data view of each catalogue career: related occupation groups + demand for its key skills. */

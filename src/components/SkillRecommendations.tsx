@@ -20,7 +20,7 @@ interface Props {
   onToggleKnown: (id: string) => void;
 }
 
-function Item({ item, aiText }: { item: RecommendationItem; aiText?: string }) {
+export function RecommendationItemView({ item, aiText }: { item: RecommendationItem; aiText?: string }) {
   const careerTitle = (id: string) => careers.find((c) => c.id === id)?.title ?? id;
   return (
     <li className="rec">
@@ -36,6 +36,7 @@ function Item({ item, aiText }: { item: RecommendationItem; aiText?: string }) {
             {r.type === 'favorites' && <>Свързано с любимите ви професии: {r.careers!.map(careerTitle).join(', ')}. </>}
             {r.type === 'quiz' && <>Отговаря на резултата от теста ({r.label}). </>}
             {r.type === 'complements' && <>Често се търси заедно с умения, които вече имате. </>}
+            {r.type === 'answers' && <>Отговаря на избора ви: {r.answers!.join('; ')}. </>}
           </span>
         ))}
         <span className="muted">Увереност: {CONFIDENCE_LABELS[item.model.confidence]}.</span>
@@ -135,7 +136,7 @@ export default function SkillRecommendations({ data, favorites, knownSkills, onT
                   <h4><i className={`fa-solid ${HORIZON_ICONS[key]}`} /> {h.label}</h4>
                   {h.available ? (
                     <ol className="rec-list">
-                      {h.items.map((it) => <Item key={it.skill_id} item={it} aiText={result.ai?.explanations?.[`${key}:${it.skill_id}`]} />)}
+                      {h.items.map((it) => <RecommendationItemView key={it.skill_id} item={it} aiText={result.ai?.explanations?.[`${key}:${it.skill_id}`]} />)}
                     </ol>
                   ) : (
                     <p className="data-note">{h.reason}</p>

@@ -14,6 +14,14 @@ export function adminEmails() {
   return String(process.env.ADMIN_EMAILS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
 }
 
+/** Signed-in Supabase user from "Authorization: Bearer <access token>", or null. */
+export async function getUserFromRequest(req, db = createServiceClient()) {
+  const token = String(req.headers?.authorization || '').replace(/^Bearer\s+/i, '');
+  if (!token || !db) return null;
+  const { data, error } = await db.auth.getUser(token);
+  return error ? null : data?.user ?? null;
+}
+
 /** Resolves the signed-in Supabase user from the bearer token and checks ADMIN_EMAILS. */
 export async function getAdminUser(req) {
   const token = String(req.headers?.authorization || '').replace(/^Bearer\s+/i, '');

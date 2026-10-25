@@ -3,7 +3,7 @@ import type { Tab } from '../types';
 
 const NAV: { id: Tab; label: string; icon: string; mobileColor: string }[] = [
   { id: 'catalog', label: 'Каталог Професии', icon: 'fa-briefcase', mobileColor: 'var(--cyan)' },
-  { id: 'quiz', label: 'Тест за съвместимост', icon: 'fa-wand-magic-sparkles', mobileColor: 'var(--purple)' },
+  { id: 'quiz', label: 'Кариерна прогноза', icon: 'fa-wand-magic-sparkles', mobileColor: 'var(--purple)' },
   { id: 'analytics', label: 'Анализи & Трендове', icon: 'fa-chart-pie', mobileColor: 'var(--emerald)' },
   { id: 'skills', label: 'Топ Умения', icon: 'fa-brain', mobileColor: 'var(--pink)' },
   { id: 'simulator', label: 'Един ден през 2035', icon: 'fa-clock-rotate-left', mobileColor: 'var(--cyan)' },

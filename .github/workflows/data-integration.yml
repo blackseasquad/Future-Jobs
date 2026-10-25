@@ -29,7 +29,8 @@ jobs:
           DB_URL=$(echo "$SB_DB_URL" | tr -d '"')
           psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/schema.sql
           psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261023000000_market_data.sql
-          psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261023000000_market_data.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261025000000_quiz_reports.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261025000000_quiz_reports.sql
           psql "$DB_URL" -c "notify pgrst, 'reload schema';"
       - name: Run integration check
         run: |
