@@ -4,6 +4,7 @@ import type { MarketSnapshot } from '../lib/marketData';
 import type { CategoryFilter } from '../types';
 import { FreshnessBadge } from './DataStatus';
 import CareerCard from './CareerCard';
+import GrowingGroups from './GrowingGroups';
 
 interface CatalogTabProps {
   isFavorite: (id: string) => boolean;
@@ -79,6 +80,8 @@ export default function CatalogTab({ isFavorite, onToggleFavorite, onOpen, onSim
           ))}
         </div>
       )}
+
+      <GrowingGroups data={market} />
     </section>
   );
 }

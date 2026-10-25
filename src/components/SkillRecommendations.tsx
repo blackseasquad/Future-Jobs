@@ -20,8 +20,24 @@ interface Props {
   onToggleKnown: (id: string) => void;
 }
 
-function Item({ item, aiText }: { item: RecommendationItem; aiText?: string }) {
+export function RecommendationItemView({ item, aiText, compact = false }: { item: RecommendationItem; aiText?: string; compact?: boolean }) {
   const careerTitle = (id: string) => careers.find((c) => c.id === id)?.title ?? id;
+  if (compact) {
+    const lead = item.facts[0] ?? item.forecasts[0];
+    return (
+      <li className="rec rec--compact">
+        <div className="rec__head">
+          <strong>{item.label_bg}</strong>
+          <span className="rec__score" title="Оценка за хоризонта по модела на приложението (0–100)">{item.model.horizon_score} <span className="tag tag--model">Модел</span></span>
+        </div>
+        {lead && <p className="rec__why"><span className={`tag ${item.facts[0] ? 'tag--fact' : 'tag--forecast'}`}>{item.facts[0] ? 'Факт' : 'Прогноза'}</span> {lead.text}</p>}
+        <details className="rec__more">
+          <summary>Защо, данни и къде да уча</summary>
+          <ul><RecommendationItemView item={item} aiText={aiText} /></ul>
+        </details>
+      </li>
+    );
+  }
   return (
     <li className="rec">
       <div className="rec__head">
@@ -36,6 +52,7 @@ function Item({ item, aiText }: { item: RecommendationItem; aiText?: string }) {
             {r.type === 'favorites' && <>Свързано с любимите ви професии: {r.careers!.map(careerTitle).join(', ')}. </>}
             {r.type === 'quiz' && <>Отговаря на резултата от теста ({r.label}). </>}
             {r.type === 'complements' && <>Често се търси заедно с умения, които вече имате. </>}
+            {r.type === 'answers' && <>Отговаря на избора ви: {r.answers!.join('; ')}. </>}
           </span>
         ))}
         <span className="muted">Увереност: {CONFIDENCE_LABELS[item.model.confidence]}.</span>
@@ -135,7 +152,7 @@ export default function SkillRecommendations({ data, favorites, knownSkills, onT
                   <h4><i className={`fa-solid ${HORIZON_ICONS[key]}`} /> {h.label}</h4>
                   {h.available ? (
                     <ol className="rec-list">
-                      {h.items.map((it) => <Item key={it.skill_id} item={it} aiText={result.ai?.explanations?.[`${key}:${it.skill_id}`]} />)}
+                      {h.items.map((it) => <RecommendationItemView key={it.skill_id} item={it} aiText={result.ai?.explanations?.[`${key}:${it.skill_id}`]} />)}
                     </ol>
                   ) : (
                     <p className="data-note">{h.reason}</p>

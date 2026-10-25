@@ -37,6 +37,19 @@ scoring model: [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
    `curl -H "Authorization: Bearer $CRON_SECRET" "https://<your-domain>/api/cron/daily-refresh?force=1"`
 5. Optional, for the 5–10 year horizon: import Cedefop forecasts (`npm run import:cedefop`, see docs).
 
+## Career forecast (test) and e-mail
+The "Кариерна прогноза" tab saves each result (answers + computed forecast, no personal data) under a random
+link token; the result can be e-mailed through [Resend](https://resend.com).
+
+1. Supabase → SQL Editor: run `supabase/migrations/20261025000000_quiz_reports.sql`.
+2. Resend: create an account, add and verify your domain (DNS records), create an API key.
+3. Vercel → Environment Variables (Production):
+   - `RESEND_API_KEY` — the Resend API key
+   - `EMAIL_FROM` — e.g. `FUTURE-JOBS <prognoza@your-domain.bg>` (must be on the verified domain)
+   - `PUBLIC_SITE_URL` — e.g. `https://future-jobs-orcin.vercel.app` (used for the link in the e-mail)
+   - `EMAIL_HASH_SALT` — random string (e-mail addresses are stored only as salted hashes, for rate limits)
+4. Redeploy. Without these the test still works; the e-mail button reports that sending is not configured.
+
 ```bash
 npm test            # unit + pipeline tests (no network)
 npm run typecheck

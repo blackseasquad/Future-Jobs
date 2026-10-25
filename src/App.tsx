@@ -16,7 +16,7 @@ import CatalogTab from './components/CatalogTab';
 import FavoritesModal from './components/FavoritesModal';
 import Header from './components/Header';
 import Hero from './components/Hero';
-import QuizTab from './components/QuizTab';
+import ForecastQuiz from './components/ForecastQuiz';
 import SimulatorTab from './components/SimulatorTab';
 import SkillsTab from './components/SkillsTab';
 import Toast from './components/Toast';
@@ -24,14 +24,17 @@ import Toast from './components/Toast';
 // Readable section names sent to the assistant so it knows where the visitor is.
 const TAB_LABELS: Record<string, string> = {
   catalog: 'Каталог Професии',
-  quiz: 'Тест за съвместимост',
+  quiz: 'Кариерна прогноза',
   analytics: 'Анализи & Трендове',
   skills: 'Топ Умения',
   simulator: 'Един ден през 2035',
 };
 
+// A "?report=<token>" link (e.g. from the forecast e-mail) opens the saved forecast.
+const initialReportToken = new URLSearchParams(window.location.search).get('report');
+
 export default function App() {
-  const [tab, setTab] = useState<Tab>('catalog');
+  const [tab, setTab] = useState<Tab>(initialReportToken ? 'quiz' : 'catalog');
   const [openCareerId, setOpenCareerId] = useState<string | null>(null);
   const [simRoleId, setSimRoleId] = useState(careers[0].id);
   const [showFavorites, setShowFavorites] = useState(false);
@@ -87,14 +90,18 @@ export default function App() {
             onSimulate={simulate}
           />
         )}
-        {tab === 'quiz' && <QuizTab onOpenCareer={setOpenCareerId} />}
+        {tab === 'quiz' && (
+          <ForecastQuiz market={market.data} user={auth.user} notify={notify} onOpenCareer={setOpenCareerId} initialToken={initialReportToken} />
+        )}
         {tab === 'analytics' && (
           <AnalyticsTab market={market.data} marketError={market.error} onReloadMarket={market.reload} user={auth.user} notify={notify} />
         )}
         {tab === 'skills' && (
           <SkillsTab market={market.data} favorites={favorites} knownSkills={knownSkills.known} onToggleKnown={knownSkills.toggle} />
         )}
-        {tab === 'simulator' && <SimulatorTab roleId={simRoleId} onChange={setSimRoleId} />}
+        {tab === 'simulator' && (
+          <SimulatorTab roleId={simRoleId} onChange={setSimRoleId} market={market.data} knownSkills={knownSkills.known} />
+        )}
       </main>
 
       <footer className="footer">

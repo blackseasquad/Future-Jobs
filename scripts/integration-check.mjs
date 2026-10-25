@@ -24,7 +24,13 @@ const service = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth:
 const anon = createClient(url, process.env.SUPABASE_ANON_KEY, { auth: { persistSession: false } });
 const store = createSupabaseStore(service);
 const report = { startedAt: new Date().toISOString(), checks: [] };
-const check = (name, ok, details) => { report.checks.push({ name, ok: Boolean(ok), details }); console.log(`${ok ? 'PASS' : 'FAIL'} ${name}`, details ?? ''); };
+const check = (name, ok, details) => {
+  report.checks.push({ name, ok: Boolean(ok), details });
+  console.log(`${ok ? 'PASS' : 'FAIL'} ${name}`, details ?? '');
+  // GitHub Actions annotation, visible in the run summary without opening the logs
+  if (!ok && process.env.GITHUB_ACTIONS) console.log(`::error title=${name}::${JSON.stringify(details ?? null).slice(0, 900).replace(/[\r\n%]/g, ' ')}`);
+};
+process.on('unhandledRejection', (e) => { if (process.env.GITHUB_ACTIONS) console.log(`::error title=crash::${String(e?.stack || e).slice(0, 900).replace(/[\r\n%]/g, ' ')}`); process.exit(1); });
 
 // Cache real HTTP responses so re-runs use identical data (and Remotive is called once, per its terms).
 const cache = new Map();
@@ -94,10 +100,9 @@ const brokenFetch = async (u, init) => {
 const run3 = await runRefresh({ store, now, trigger: 'test', force: true, fetchImpl: brokenFetch });
 const { data: arb } = await service.from('data_sources').select('last_status, last_error, last_success_at').eq('id', 'arbeitnow').single();
 const c3 = await counts();
-const { data: scoresAfter } = await service.from('skill_scores').select('score, inputs').not('score', 'is', null).limit(1);
 check('unreachable sources -> partial run, errors logged, previous data kept',
   run3.status === 'partial' && arb.last_status === 'error' && Boolean(arb.last_success_at)
-  && c3.skill_demand_snapshots === c2.skill_demand_snapshots && c3.stat_series === c2.stat_series && scoresAfter?.length === 1,
+  && c3.skill_demand_snapshots === c2.skill_demand_snapshots && c3.stat_series === c2.stat_series && c3.skill_scores === c2.skill_scores,
   { status: run3.status, arb, jobs_combined: run3.results.jobs_combined, demandRows: c3.skill_demand_snapshots, statRows: c3.stat_series });
 
 // 4) public read + RLS
@@ -114,6 +119,29 @@ const recs = buildRecommendations({ skills: await anonStore.getSkills(), scores:
 report.recommendations = Object.fromEntries(Object.entries(recs).map(([k, h]) => [k, { available: h.available, reason: h.reason,
   items: h.items.map((i) => ({ skill: i.skill_id, model: i.model, facts: i.facts.map((f) => f.text), next: i.next_skills.map((n) => n.id) })) }]));
 check('recommendations built from real data', recs.short.available, report.recommendations.short);
+
+// 4b) career forecast with the real data: create, store, reopen by token, e-mail (send mocked), anon cannot read reports
+const { handleForecast } = await import('../api/forecast.js');
+const { createSupabaseReports } = await import('../api/_lib/reports.js');
+const fReports = createSupabaseReports(service);
+const mkRes = () => { const r = { statusCode: 200 }; r.status = (c) => { r.statusCode = c; return r; }; r.json = (b) => { r.body = b; return r; }; r.setHeader = () => {}; return r; };
+const fDeps = { store, reports: fReports, getUser: async () => null, send: async () => ({ ok: true, id: 'mock' }) };
+const fAnswers = { interests: ['tech', 'green'], style: 'analyse', known: ['python'], stage: 'student', time: 'mid', priority: 'growth', region: 'BG', ai: 'use' };
+const fc = mkRes();
+await handleForecast({ method: 'POST', headers: {}, body: { action: 'create', answers: fAnswers } }, fc, fDeps);
+report.forecast = fc.body?.report ? { groups: fc.body.report.groups.map((g) => [g.isco2, g.label_bg, g.fit, g.data_percentile]),
+  careers: fc.body.report.careers.map((c) => c.id), horizons: Object.fromEntries(Object.entries(fc.body.report.horizons).map(([k, h]) => [k, h.items.map((i) => i.skill_id)])),
+  plan: fc.body.report.plan.text } : fc.body;
+check('forecast built from real data and saved', fc.statusCode === 200 && fc.body.report.groups.length > 0 && fc.body.report.horizons.short.available, report.forecast);
+const fo = mkRes();
+await handleForecast({ method: 'GET', headers: {}, query: { token: fc.body?.token } }, fo, fDeps);
+check('forecast reopened by token', fo.statusCode === 200 && fo.body.report.created_at === fc.body?.report?.created_at);
+const fe = mkRes();
+await handleForecast({ method: 'POST', headers: {}, body: { action: 'email', token: fc.body?.token, email: 'test@example.com', consent: true } }, fe, fDeps);
+const { data: logRows } = await service.from('email_log').select('email_hash, status');
+check('e-mail logged by hash only', fe.statusCode === 200 && logRows?.length === 1 && !JSON.stringify(logRows).includes('example.com'), logRows);
+const { data: anonReports } = await anon.from('quiz_reports').select('token');
+check('anon cannot read saved reports (RLS)', (anonReports || []).length === 0, anonReports?.length);
 
 // 5) cron handler auth (real DB)
 process.env.CRON_SECRET = 'integration-secret-0123456789';

@@ -9,16 +9,18 @@ const CATEGORY_LABELS = { ai: 'AI & Tech', green: 'Зелена енергия',
 const pct = (x, d = 1) => `${(x * 100).toFixed(d).replace('.', ',')}%`;
 const signed = (x, d = 1) => `${x > 0 ? '+' : ''}${x.toFixed(d).replace('.', ',')}`;
 
-export function relevanceFor(skill, { knownSkills, favoriteCareerIds, quizCategory, relatedToKnown }) {
+export function relevanceFor(skill, { knownSkills, favoriteCareerIds, quizCategory, relatedToKnown, answerSkills = new Map() }) {
   const reasons = [];
   let r = 0;
+  const fromAnswers = answerSkills.get(skill.id);
+  if (fromAnswers?.length) { r += Math.min(1, 0.5 + 0.25 * fromAnswers.length); reasons.push({ type: 'answers', answers: fromAnswers }); }
   const careers = favoriteCareerIds.filter((c) => (CAREER_SKILLS[c] || []).includes(skill.id));
   if (careers.length) { r += 1; reasons.push({ type: 'favorites', careers }); }
   if (quizCategory && skill.categories?.includes(quizCategory)) { r += 0.7; reasons.push({ type: 'quiz', category: quizCategory, label: CATEGORY_LABELS[quizCategory] }); }
   const via = relatedToKnown.get(skill.id);
   if (via?.length) { r += 0.5; reasons.push({ type: 'complements', skills: via }); }
   if (skill.categories?.includes('core')) r += 0.3;
-  if (!favoriteCareerIds.length && !quizCategory && !knownSkills.length) r = 0.5; // no profile: rank by market data
+  if (!favoriteCareerIds.length && !quizCategory && !knownSkills.length && !answerSkills.size) r = 0.5; // no profile: rank by market data
   return { relevance: Math.min(1, r), reasons };
 }
 
@@ -70,6 +72,8 @@ export function buildRecommendations({ skills, scores, sources, profile, limit =
   const knownSkills = (profile.knownSkills || []).filter((id) => typeof id === 'string');
   const favoriteCareerIds = (profile.favoriteCareerIds || []).filter((id) => typeof id === 'string');
   const quizCategory = typeof profile.quizCategory === 'string' ? profile.quizCategory : null;
+  const answerSkills = profile.answerSkills instanceof Map ? profile.answerSkills : new Map();
+  const coverGroups = Array.isArray(profile.coverGroups) ? profile.coverGroups.filter((g) => Array.isArray(g) && g.length) : [];
   const scoreById = new Map(scores.map((s) => [s.skill_id, s]));
   const sourcesById = Object.fromEntries(sources.map((s) => [s.id, s]));
   const catalog = new Map(SKILLS.map((s) => [s.id, s]));
@@ -83,7 +87,7 @@ export function buildRecommendations({ skills, scores, sources, profile, limit =
   }
 
   const candidates = skills.filter((s) => !knownSkills.includes(s.id)).map((s) => ({
-    skill: s, row: scoreById.get(s.id), ...relevanceFor(s, { knownSkills, favoriteCareerIds, quizCategory, relatedToKnown }),
+    skill: s, row: scoreById.get(s.id), ...relevanceFor(s, { knownSkills, favoriteCareerIds, quizCategory, relatedToKnown, answerSkills }),
   }));
 
   const horizons = {};
@@ -95,11 +99,20 @@ export function buildRecommendations({ skills, scores, sources, profile, limit =
       .map((c) => ({ ...c, rank: 0.6 * c.h + 40 * c.relevance }))
       .sort((a, b) => b.rank - a.rank);
     const picked = [];
+    // Each answer group (e.g. every chosen interest) gets at least one skill somewhere in the plan.
+    for (const group of coverGroups) {
+      if (picked.length >= limit - 1) break;
+      if (group.some((id) => used.has(id) || picked.some((p) => p.skill.id === id))) continue;
+      const best = ranked.find((c) => group.includes(c.skill.id) && !used.has(c.skill.id));
+      if (best) picked.push(best);
+    }
     for (const c of ranked) {
       if (picked.length >= limit) break;
+      if (picked.includes(c)) continue;
       if (used.has(c.skill.id) && ranked.length > limit * 2) continue; // prefer variety across horizons
       picked.push(c);
     }
+    picked.sort((a, b) => b.rank - a.rank);
     picked.forEach((c) => used.add(c.skill.id));
 
     horizons[key] = {

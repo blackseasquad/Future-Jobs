@@ -153,3 +153,14 @@ test('language skill matches requirements, not the ad language', async () => {
   assert.equal(lang('we are an english-speaking team in berlin, germany'), false);
   assert.equal(lang('fluent english and german skills required'), true);
 });
+
+test('simulator scenarios only use tracked skills and cover every career', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { SKILLS, CAREER_SKILLS } = await import('../api/_lib/catalog.js');
+  const ids = new Set(SKILLS.map((s) => s.id));
+  const src = readFileSync(new URL('../src/data/simulations.ts', import.meta.url), 'utf8');
+  for (const m of src.matchAll(/skills: \[([^\]]*)\]/g)) {
+    for (const id of m[1].split(',').map((x) => x.trim().replace(/'/g, '')).filter(Boolean)) assert.ok(ids.has(id), `unknown skill ${id}`);
+  }
+  for (const careerId of Object.keys(CAREER_SKILLS)) assert.ok(src.includes(`'${careerId}': [`), `no scenario for ${careerId}`);
+});
