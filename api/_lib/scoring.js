@@ -159,7 +159,8 @@ export function computeScores(input) {
 /** Score for a recommendation horizon (uses the same percentiles, different emphasis). */
 export const HORIZONS = {
   short: { label: '6–12 месеца', weights: { demand: 0.6, momentum: 0.4 }, required: ['demand'] },
-  medium: { label: '2–5 години', weights: { breadth: 0.3, connectivity: 0.25, occupationTrend: 0.25, demand: 0.2 }, required: ['breadth'] },
+  // needs at least one structural signal: ESCO breadth or the employment trend of the related occupations
+  medium: { label: '2–5 години', weights: { breadth: 0.3, connectivity: 0.25, occupationTrend: 0.25, demand: 0.2 }, required: [], requiredAny: ['breadth', 'occupationTrend'] },
   long: { label: '5–10 години', weights: { longTerm: 0.6, breadth: 0.2, occupationTrend: 0.2 }, required: ['longTerm'] },
 };
 
@@ -167,6 +168,7 @@ export function horizonScore(scoreRow, horizonKey) {
   const h = HORIZONS[horizonKey];
   if (!scoreRow) return null;
   for (const req of h.required) if (scoreRow.components?.[req]?.percentile == null) return null;
+  if (h.requiredAny && !h.requiredAny.some((c) => scoreRow.components?.[c]?.percentile != null)) return null;
   let w = 0;
   let acc = 0;
   for (const [comp, weight] of Object.entries(h.weights)) {

@@ -138,3 +138,18 @@ test('Cedefop CSV parser accepts template and label-based exports', () => {
 
   assert.ok(parseCedefopCsv('a,b\n1,2').errors.length > 0);
 });
+
+test('medium horizon works with either ESCO breadth or the employment trend', () => {
+  const row = (comp) => ({ components: Object.fromEntries(['demand', 'momentum', 'longTerm', 'occupationTrend', 'breadth', 'connectivity']
+    .map((k) => [k, { percentile: comp[k] ?? null }])) });
+  assert.ok(horizonScore(row({ breadth: 60, demand: 40 }), 'medium') !== null);
+  assert.ok(horizonScore(row({ occupationTrend: 70, connectivity: 50, demand: 40 }), 'medium') !== null);
+  assert.equal(horizonScore(row({ connectivity: 50, demand: 40 }), 'medium'), null);
+});
+
+test('language skill matches requirements, not the ad language', async () => {
+  const { SKILLS } = await import('../api/_lib/catalog.js');
+  const lang = buildMatcher(SKILLS.find((s) => s.id === 'foreign-languages').terms);
+  assert.equal(lang('we are an english-speaking team in berlin, germany'), false);
+  assert.equal(lang('fluent english and german skills required'), true);
+});

@@ -3,13 +3,13 @@
 // Re-running on the same day overwrites that day's rows (primary keys include the date),
 // so repeated runs never duplicate data.
 
-import { SKILLS, SOURCES } from './catalog.js';
+import { SKILL_ISCO_FALLBACK, SKILLS, SOURCES } from './catalog.js';
 import { computeScores, MIN_ADS_FOR_DEMAND } from './scoring.js';
 import * as defaultAdapters from './sources.js';
+import ESCO_MAP from '../_data/esco-map.js';
 import { addDays, buildMatcher, escoLabelToTerm, jobDedupKey, round, sofiaClock } from './util.js';
 
 const MIN_ADS_PER_SOURCE = 20;
-const ESCO_RECHECK_DAYS = 30;
 const STALE_RUN_MINUTES = 15;
 
 export function catalogRows() {
@@ -67,19 +67,6 @@ export function dedupeJobs(jobs) {
   return out;
 }
 
-async function mapLimit(items, limit, fn) {
-  const results = [];
-  let i = 0;
-  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (i < items.length) {
-      const idx = i++;
-      results[idx] = await fn(items[idx]);
-    }
-  });
-  await Promise.all(workers);
-  return results;
-}
-
 function cagr(first, last, years) {
   if (!(first > 0) || !(last > 0) || years <= 0) return null;
   return (Math.pow(last / first, 1 / years) - 1) * 100;
@@ -122,13 +109,11 @@ export function forecastByIsco2(forecasts, preferredGeo = 'EU27_2020') {
  * @param {string} [opts.trigger]   'cron' | 'manual' | 'test'
  * @param {boolean}[opts.force]     run even if today's run already succeeded
  * @param {object} [opts.adapters]  injectable source adapters (tests)
+ * @param {object} [opts.escoMap]   ESCO mapping (defaults to the bundled api/_data/esco-map.js)
  */
 export async function runRefresh({ store, now = new Date(), trigger = 'cron', force = false, adapters = defaultAdapters,
-  fetchImpl, budgets = {}, log = console } = {}) {
+  fetchImpl, escoMap = ESCO_MAP, log = console } = {}) {
   const startedMs = Date.now();
-  const timeBudgetMs = budgets.timeMs ?? 35000; // keeps a cold first run well under the 60 s function limit
-  const escoRequestBudget = budgets.escoRequests ?? 80;
-  const occupationBudget = budgets.occupations ?? 150;
   const { date: today } = sofiaClock(now);
 
   // Idempotency + concurrency guard
@@ -169,53 +154,31 @@ export async function runRefresh({ store, now = new Date(), trigger = 'cron', fo
     }
   };
 
-  // 1) ESCO enrichment first, so new synonyms are used for today's job-ad matching
-  let escoRequests = 0;
+  // 1) ESCO: load the bundled skill → occupation → ISCO mapping (api/_data/esco-map.js).
+  // The ESCO API blocks Vercel's servers (HTTP 403), so the map is built in GitHub Actions.
   await step('esco', async () => {
-    const cutoff = addDays(today, -ESCO_RECHECK_DAYS);
-    const due = skills.filter((s) => !s.esco_checked_at || s.esco_checked_at.slice(0, 10) < cutoff);
-    const catalogById = new Map(SKILLS.map((s) => [s.id, s]));
-    let enriched = 0;
-    const errors = [];
-    await mapLimit(due, 4, async (s) => {
-      if (escoRequests + 2 > escoRequestBudget || Date.now() - startedMs > timeBudgetMs * 0.5) return;
-      try {
-        escoRequests += 1;
-        const hit = s.esco_uri ? { uri: s.esco_uri } : await adapters.escoFindSkill(catalogById.get(s.id)?.esco || s.label_en, { fetchImpl });
-        if (!hit) {
-          await store.updateSkill(s.id, { esco_checked_at: new Date().toISOString() });
-          return;
-        }
-        escoRequests += 1;
-        const d = await adapters.escoSkillDetails(hit.uri, { fetchImpl });
-        await store.upsertOccupations(d.occupations.map((o) => ({ uri: o.uri, label_en: o.label_en })));
-        await store.upsertSkillOccupations(d.occupations.map((o) => ({ skill_id: s.id, occupation_uri: o.uri, relation: o.relation })));
+    const map = escoMap;
+    if (!map?.skills || !Object.keys(map.skills).length) {
+      throw new Error('Речникът ESCO още не е генериран (ESCO API е недостъпно); използва се редакционна връзка умение → ISCO група');
+    }
+    const version = map.generatedAt;
+    const due = skills.filter((s) => map.skills[s.id] && (!s.esco_checked_at || s.esco_checked_at < version || !s.esco_uri));
+    if (due.length) {
+      const occRows = Object.entries(map.occupations || {}).map(([uri, o]) => ({
+        uri, label_en: o.label_en, label_bg: o.label_bg ?? null, isco_code: o.isco_code ?? null, isco2: o.isco2 ?? null, fetched_at: version,
+      }));
+      await store.upsertOccupations(occRows);
+      for (const s of due) {
+        const m = map.skills[s.id];
+        const rels = m.occupations.filter((o) => map.occupations?.[o.uri]);
+        await store.replaceSkillOccupations(s.id, rels.map((o) => ({ skill_id: s.id, occupation_uri: o.uri, relation: o.relation })));
         await store.updateSkill(s.id, {
-          esco_uri: d.uri, esco_label_en: d.label_en, esco_label_bg: d.label_bg,
-          esco_alt_labels: d.alt_en.slice(0, 40), esco_checked_at: new Date().toISOString(),
+          esco_uri: m.uri, esco_label_en: m.label_en, esco_label_bg: m.label_bg ?? null,
+          esco_alt_labels: (m.alt_en || []).slice(0, 40), esco_checked_at: version,
         });
-        enriched++;
-      } catch (e) {
-        errors.push(`${s.id}: ${e.message}`);
       }
-    });
-    // Occupation -> ISCO group (needed to link skills to Eurostat/Cedefop occupation data)
-    const pending = await store.getOccupationsToEnrich(occupationBudget);
-    if (!due.length && !pending.length) return { skipped: true, reason: 'nothing due (ESCO data is recent)' };
-    let occDone = 0;
-    await mapLimit(pending, 6, async (o) => {
-      if (Date.now() - startedMs > timeBudgetMs * 0.7) return;
-      try {
-        const d = await adapters.escoOccupationDetails(o.uri, { fetchImpl });
-        await store.upsertOccupations([{ ...d, fetched_at: new Date().toISOString() }]);
-        occDone++;
-      } catch (e) {
-        errors.push(`occupation: ${e.message}`);
-      }
-    });
-    if (due.length && enriched === 0 && errors.length) throw new Error(`ESCO unavailable: ${errors[0]}`);
-    return { records: enriched + occDone, skillsEnriched: enriched, skillsPending: Math.max(0, due.length - enriched),
-      occupationsEnriched: occDone, warnings: errors.slice(0, 5), period: today };
+    }
+    return { records: due.length, skillsMapped: Object.keys(map.skills).length, period: `карта от ${version.slice(0, 10)}` };
   });
   skills = await store.getSkills();
 
@@ -272,7 +235,8 @@ export async function runRefresh({ store, now = new Date(), trigger = 'cron', fo
   const scoreSummary = await recomputeScores(store, today);
   results.scores = { status: 'ok', ...scoreSummary };
 
-  const sourceStatuses = ['esco', 'remotive', 'arbeitnow', 'eurostat_jvs', 'eurostat_lfs']
+  // ESCO is a bundled file, not fetched at run time, so it does not decide whether the run succeeded.
+  const sourceStatuses = ['remotive', 'arbeitnow', 'eurostat_jvs', 'eurostat_lfs']
     .map((k) => results[k]?.status).filter((s) => s !== 'skipped');
   const okCount = sourceStatuses.filter((s) => s === 'ok').length;
   const status = okCount === sourceStatuses.length ? 'success' : okCount === 0 ? 'failed' : 'partial';
@@ -314,10 +278,21 @@ export async function recomputeScores(store, today) {
     occupationCounts.set(r.skill_id, c);
   }
 
+  // Skills without ESCO links fall back to the editorial ISCO mapping (trend/forecast only; breadth stays empty).
+  const occupationSource = new Map();
+  for (const sk of skills) {
+    if (skillOccupations.get(sk.id)?.some((o) => o.isco2)) occupationSource.set(sk.id, 'esco');
+    else if (SKILL_ISCO_FALLBACK[sk.id]) {
+      skillOccupations.set(sk.id, SKILL_ISCO_FALLBACK[sk.id].map((isco2) => ({ skill_id: sk.id, relation: 'essential', isco2 })));
+      occupationSource.set(sk.id, 'editorial');
+    }
+  }
+
   const forecastGrowth = forecastByIsco2(await store.getForecasts());
   const employmentTrend = employmentTrendByIsco2(await store.getStatSeries('lfsa_egai2d'));
 
   const scores = computeScores({ today, demandDate, skills, demandHistory, cooccurrence, skillOccupations, occupationCounts, forecastGrowth, employmentTrend });
+  for (const sc of scores) sc.inputs.occupation_source = occupationSource.get(sc.skill_id) || null;
   await store.upsertScores(scores);
   return {
     computed: scores.length,

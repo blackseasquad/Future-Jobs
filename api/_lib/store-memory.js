@@ -19,6 +19,10 @@ export function createMemoryStore() {
     async updateSkill(id, patch) { merge(t.skills, id, patch); },
     async upsertOccupations(rows) { rows.forEach((r) => merge(t.occupations, r.uri, r)); },
     async getOccupationsToEnrich(limit) { return [...t.occupations.values()].filter((o) => !o.fetched_at).slice(0, limit); },
+    async replaceSkillOccupations(skillId, rows) {
+      for (const k of [...t.skill_occupations.keys()]) if (k.startsWith(`${skillId}|`)) t.skill_occupations.delete(k);
+      rows.forEach((r) => t.skill_occupations.set(`${r.skill_id}|${r.occupation_uri}`, r));
+    },
     async upsertSkillOccupations(rows) { rows.forEach((r) => t.skill_occupations.set(`${r.skill_id}|${r.occupation_uri}`, r)); },
     async getSkillOccupations() {
       return [...t.skill_occupations.values()].map((r) => ({ skill_id: r.skill_id, relation: r.relation, isco2: t.occupations.get(r.occupation_uri)?.isco2 ?? null }));

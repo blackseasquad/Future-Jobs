@@ -48,14 +48,13 @@ async function counts() {
 }
 
 const now = new Date();
-const budgets = { timeMs: 240000, escoRequests: 80, occupations: 400 };
 
 // 1) real run
-const run1 = await runRefresh({ store, now, trigger: 'test', force: true, fetchImpl: cachedFetch, budgets });
+const run1 = await runRefresh({ store, now, trigger: 'test', force: true, fetchImpl: cachedFetch });
 report.run1 = run1;
 const c1 = await counts();
 report.countsAfterRun1 = c1;
-for (const src of ['esco', 'eurostat_jvs', 'eurostat_lfs', 'remotive', 'arbeitnow']) {
+for (const src of ['eurostat_jvs', 'eurostat_lfs', 'remotive', 'arbeitnow']) {
   check(`real source works: ${src}`, run1.results[src]?.status === 'ok', run1.results[src]);
 }
 check('demand history stored', c1.skill_demand_snapshots > 0, c1.skill_demand_snapshots);
@@ -70,10 +69,17 @@ const { data: jvs } = await service.from('stat_series').select('series_key, geo,
 report.jvsSample = jvs;
 const { data: occ } = await service.from('occupations').select('uri, label_en, isco_code, isco2').not('isco2', 'is', null).limit(5);
 report.occupationSample = occ;
-check('ESCO occupations mapped to ISCO groups', (occ || []).length > 0, occ?.[0]);
+const { data: pyScore } = await service.from('skill_scores').select('inputs').eq('skill_id', 'python').order('computed_date', { ascending: false }).limit(1);
+const occSource = pyScore?.[0]?.inputs?.occupation_source;
+check('skills linked to occupation groups (bundled ESCO map or editorial fallback)',
+  run1.results.esco?.status === 'ok' ? (occ || []).length > 0 && occSource === 'esco' : occSource === 'editorial',
+  { esco: run1.results.esco, occupation_source: occSource });
+const snapForCareers = await buildSnapshot(createSupabaseStore(service));
+check('catalogue careers carry real Eurostat data', Object.values(snapForCareers.careers).every((c) => c.groups.some((g) => g.eurostat.EU27_2020?.cagr_pct != null)),
+  Object.fromEntries(Object.entries(snapForCareers.careers).map(([k, c]) => [k, c.groups.map((g) => `${g.isco2}:${g.eurostat.EU27_2020?.cagr_pct}`)])));
 
 // 2) idempotent re-run
-const run2 = await runRefresh({ store, now, trigger: 'test', force: true, fetchImpl: cachedFetch, budgets: { ...budgets, occupations: 0 } });
+const run2 = await runRefresh({ store, now, trigger: 'test', force: true, fetchImpl: cachedFetch });
 const c2 = await counts();
 report.countsAfterRun2 = c2;
 const grew = TABLES.filter((t) => t !== 'refresh_runs' && t !== 'occupations' && c2[t] !== c1[t]);
@@ -85,7 +91,7 @@ const brokenFetch = async (u, init) => {
   if (String(u).includes('jvs_q_nace2')) throw new TypeError('fetch failed: connect ETIMEDOUT ec.europa.eu');
   return cachedFetch(u, init);
 };
-const run3 = await runRefresh({ store, now, trigger: 'test', force: true, fetchImpl: brokenFetch, budgets: { ...budgets, occupations: 0 } });
+const run3 = await runRefresh({ store, now, trigger: 'test', force: true, fetchImpl: brokenFetch });
 const { data: arb } = await service.from('data_sources').select('last_status, last_error, last_success_at').eq('id', 'arbeitnow').single();
 const c3 = await counts();
 const { data: scoresAfter } = await service.from('skill_scores').select('score, inputs').not('score', 'is', null).limit(1);

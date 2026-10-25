@@ -45,7 +45,8 @@ function factLines(skill, row, sourcesById) {
       source: 'Eurostat (lfsa_egai2d)', period: f.occupation_trend.period });
   }
   if (f.long_term) {
-    forecasts.push({ text: `Прогнозиран среден годишен ръст на заетостта в свързаните професии: ${signed(f.long_term.annual_growth_pct, 2)}%.`,
+    const geo = f.long_term.geo === 'BG' ? 'България' : f.long_term.geo === 'EU27_2020' ? 'ЕС-27' : f.long_term.geo;
+    forecasts.push({ text: `Прогнозиран среден годишен ръст на заетостта в свързаните професии${geo ? ` (${geo})` : ''}: ${signed(f.long_term.annual_growth_pct, 2)}%.`,
       source: `Cedefop Skills Forecast ${f.long_term.edition || ''}`.trim(), period: f.long_term.period });
   }
   const wef = WEF_2025.bySkill[skill.id];
@@ -60,6 +61,7 @@ function limitationsFor(row, horizonKey) {
   else if (f.demand.ads_matching < 10) out.push('Малък брой обяви споменават умението — оценката е несигурна.');
   if (!f.change90 && !f.change30) out.push('Все още няма достатъчно история (нужни са поне 30 дни ежедневни данни) за измерване на промяната.');
   if (!f.long_term) out.push('Няма импортирана дългосрочна прогноза (Cedefop) за свързаните професии.');
+  if (f.occupation_source === 'editorial') out.push('Връзката умение → групи професии е редакционна (речникът ESCO още не е наличен).');
   if (horizonKey === 'short') out.push('Обявите са от Remotive (дистанционни позиции) и Arbeitnow (основно Германия) — не са представителни за целия пазар, вкл. България.');
   return out;
 }

@@ -1,4 +1,6 @@
+import type { CareerLive } from '../lib/marketData';
 import type { Career } from '../types';
+import { CareerLiveLine } from './CareerLiveData';
 
 interface CareerCardProps {
   career: Career;
@@ -6,6 +8,7 @@ interface CareerCardProps {
   onToggleFavorite: (id: string) => void;
   onOpen: (id: string) => void;
   onSimulate: (id: string) => void;
+  live?: CareerLive;
 }
 
 export default function CareerCard({
@@ -14,6 +17,7 @@ export default function CareerCard({
   onToggleFavorite,
   onOpen,
   onSimulate,
+  live,
 }: CareerCardProps) {
   return (
     <article className="card glass">
@@ -55,6 +59,10 @@ export default function CareerCard({
             <span className="stats__value stats__value--risk">{c.risk}%</span>
           </div>
         </div>
+        <p className="card__note" title="Ръстът, заплатата и рискът от AI са редакционни оценки за професията, не измерени статистики.">
+          <span className="tag tag--model">Илюстративно</span> оценки на FUTURE-JOBS
+        </p>
+        <CareerLiveLine live={live} />
 
         <div className="pills">
           {c.skills.slice(0, 3).map((s) => (

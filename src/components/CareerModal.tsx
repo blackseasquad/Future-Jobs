@@ -1,4 +1,6 @@
+import type { MarketSnapshot } from '../lib/marketData';
 import type { Career } from '../types';
+import { CareerLiveSection } from './CareerLiveData';
 import Modal from './Modal';
 
 interface CareerModalProps {
@@ -6,9 +8,10 @@ interface CareerModalProps {
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
   onClose: () => void;
+  market: MarketSnapshot | null;
 }
 
-export default function CareerModal({ career: c, isFavorite, onToggleFavorite, onClose }: CareerModalProps) {
+export default function CareerModal({ career: c, isFavorite, onToggleFavorite, onClose, market }: CareerModalProps) {
   return (
     <Modal onClose={onClose} labelledBy="career-modal-title" size="lg">
       <div className="modal__header">
@@ -51,6 +54,12 @@ export default function CareerModal({ career: c, isFavorite, onToggleFavorite, o
             <span className="stats__value stats__value--risk">{c.risk}%</span>
           </div>
         </div>
+        <p className="card__note">
+          <span className="tag tag--model">Илюстративно</span> Ръстът, заплатата и рискът от AI са редакционни оценки на
+          FUTURE-JOBS за тази бъдеща професия, а не измерени статистики.
+        </p>
+
+        <CareerLiveSection live={market?.careers?.[c.id]} market={market} />
 
         <div>
           <h4 className="section-label">Ключови Необходими Умения</h4>

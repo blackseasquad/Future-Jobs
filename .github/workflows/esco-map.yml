@@ -1,0 +1,40 @@
+# Builds api/_data/esco-map.js (ESCO skill → occupation → ISCO-08 mapping) from the ESCO API and
+# bundles it with the code, so the daily refresh on Vercel never depends on ESCO being online.
+#  - manual run: commits the file to the branch it runs on;
+#  - weekly schedule (on main): retries until ESCO is reachable and, when the data changed, pushes the
+#    file to the branch `esco-map-update` and opens a pull request for review (nothing is merged automatically).
+name: Build ESCO map
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * 1'
+  push:
+    branches: ['claude/**']
+    paths: ['api/_lib/catalog.js', 'scripts/build-esco-map.mjs']
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/build-esco-map.mjs
+      - name: Commit if changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "esco-map-bot"; git config user.email "esco-map-bot@users.noreply.github.com"
+          git add api/_data/esco-map.js
+          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
+          git commit -m "Update ESCO map"
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            git push -f origin HEAD:esco-map-update
+            gh pr create --head esco-map-update --base "${{ github.ref_name }}" --title "Update ESCO map" \
+              --body "Automatic rebuild of api/_data/esco-map.js from the ESCO API." || echo "PR not created (exists or not allowed)"
+          else
+            git push
+          fi

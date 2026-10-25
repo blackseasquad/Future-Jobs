@@ -80,6 +80,7 @@ export default function App() {
       <main className="main">
         {tab === 'catalog' && (
           <CatalogTab
+            market={market.data}
             isFavorite={isFavorite}
             onToggleFavorite={toggle}
             onOpen={setOpenCareerId}
@@ -102,6 +103,7 @@ export default function App() {
 
       {openCareer && (
         <CareerModal
+          market={market.data}
           career={openCareer}
           isFavorite={isFavorite(openCareer.id)}
           onToggleFavorite={toggle}

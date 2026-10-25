@@ -60,6 +60,10 @@ export function createSupabaseStore(db) {
     async getOccupationsToEnrich(limit) {
       return check(await db.from('occupations').select('uri').is('fetched_at', null).limit(limit), 'select occupations');
     },
+    async replaceSkillOccupations(skillId, rows) {
+      check(await db.from('skill_occupations').delete().eq('skill_id', skillId), 'delete skill_occupations');
+      if (rows.length) await upsertChunks(db, 'skill_occupations', rows, 'skill_id,occupation_uri');
+    },
     async upsertSkillOccupations(rows) { if (rows.length) await upsertChunks(db, 'skill_occupations', rows, 'skill_id,occupation_uri'); },
     async getSkillOccupations() {
       return selectAll(() => db.from('skill_occupations').select('skill_id, relation, occupations(isco2)').order('skill_id').order('occupation_uri'),

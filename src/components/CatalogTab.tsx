@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { careers, categoryFilters } from '../data/careers';
+import type { MarketSnapshot } from '../lib/marketData';
 import type { CategoryFilter } from '../types';
+import { FreshnessBadge } from './DataStatus';
 import CareerCard from './CareerCard';
 
 interface CatalogTabProps {
@@ -8,9 +10,10 @@ interface CatalogTabProps {
   onToggleFavorite: (id: string) => void;
   onOpen: (id: string) => void;
   onSimulate: (id: string) => void;
+  market: MarketSnapshot | null;
 }
 
-export default function CatalogTab({ isFavorite, onToggleFavorite, onOpen, onSimulate }: CatalogTabProps) {
+export default function CatalogTab({ isFavorite, onToggleFavorite, onOpen, onSimulate, market }: CatalogTabProps) {
   const [filter, setFilter] = useState<CategoryFilter>('all');
   const [search, setSearch] = useState('');
 
@@ -29,6 +32,7 @@ export default function CatalogTab({ isFavorite, onToggleFavorite, onOpen, onSim
 
   return (
     <section className="stack">
+      <FreshnessBadge data={market} />
       <div className="toolbar glass">
         <div className="search">
           <i className="fa-solid fa-magnifying-glass search__icon" />
@@ -70,6 +74,7 @@ export default function CatalogTab({ isFavorite, onToggleFavorite, onOpen, onSim
               onToggleFavorite={onToggleFavorite}
               onOpen={onOpen}
               onSimulate={onSimulate}
+              live={market?.careers?.[c.id]}
             />
           ))}
         </div>
