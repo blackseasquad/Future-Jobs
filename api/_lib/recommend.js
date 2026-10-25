@@ -73,6 +73,7 @@ export function buildRecommendations({ skills, scores, sources, profile, limit =
   const favoriteCareerIds = (profile.favoriteCareerIds || []).filter((id) => typeof id === 'string');
   const quizCategory = typeof profile.quizCategory === 'string' ? profile.quizCategory : null;
   const answerSkills = profile.answerSkills instanceof Map ? profile.answerSkills : new Map();
+  const coverGroups = Array.isArray(profile.coverGroups) ? profile.coverGroups.filter((g) => Array.isArray(g) && g.length) : [];
   const scoreById = new Map(scores.map((s) => [s.skill_id, s]));
   const sourcesById = Object.fromEntries(sources.map((s) => [s.id, s]));
   const catalog = new Map(SKILLS.map((s) => [s.id, s]));
@@ -98,11 +99,20 @@ export function buildRecommendations({ skills, scores, sources, profile, limit =
       .map((c) => ({ ...c, rank: 0.6 * c.h + 40 * c.relevance }))
       .sort((a, b) => b.rank - a.rank);
     const picked = [];
+    // Each answer group (e.g. every chosen interest) gets at least one skill somewhere in the plan.
+    for (const group of coverGroups) {
+      if (picked.length >= limit - 1) break;
+      if (group.some((id) => used.has(id) || picked.some((p) => p.skill.id === id))) continue;
+      const best = ranked.find((c) => group.includes(c.skill.id) && !used.has(c.skill.id));
+      if (best) picked.push(best);
+    }
     for (const c of ranked) {
       if (picked.length >= limit) break;
+      if (picked.includes(c)) continue;
       if (used.has(c.skill.id) && ranked.length > limit * 2) continue; // prefer variety across horizons
       picked.push(c);
     }
+    picked.sort((a, b) => b.rank - a.rank);
     picked.forEach((c) => used.add(c.skill.id));
 
     horizons[key] = {

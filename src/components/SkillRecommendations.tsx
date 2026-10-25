@@ -20,8 +20,24 @@ interface Props {
   onToggleKnown: (id: string) => void;
 }
 
-export function RecommendationItemView({ item, aiText }: { item: RecommendationItem; aiText?: string }) {
+export function RecommendationItemView({ item, aiText, compact = false }: { item: RecommendationItem; aiText?: string; compact?: boolean }) {
   const careerTitle = (id: string) => careers.find((c) => c.id === id)?.title ?? id;
+  if (compact) {
+    const lead = item.facts[0] ?? item.forecasts[0];
+    return (
+      <li className="rec rec--compact">
+        <div className="rec__head">
+          <strong>{item.label_bg}</strong>
+          <span className="rec__score" title="Оценка за хоризонта по модела на приложението (0–100)">{item.model.horizon_score} <span className="tag tag--model">Модел</span></span>
+        </div>
+        {lead && <p className="rec__why"><span className={`tag ${item.facts[0] ? 'tag--fact' : 'tag--forecast'}`}>{item.facts[0] ? 'Факт' : 'Прогноза'}</span> {lead.text}</p>}
+        <details className="rec__more">
+          <summary>Защо, данни и къде да уча</summary>
+          <ul><RecommendationItemView item={item} aiText={aiText} /></ul>
+        </details>
+      </li>
+    );
+  }
   return (
     <li className="rec">
       <div className="rec__head">

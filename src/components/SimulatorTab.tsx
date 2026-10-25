@@ -121,7 +121,7 @@ function CareerPath({ roleId, market, knownSkills }: { roleId: string; market: M
             <li key={k} className="path__stop">
               <span className="path__label">{h.label}</span>
               {h.available
-                ? <ol className="rec-list">{h.items.map((it) => <RecommendationItemView key={it.skill_id} item={it} />)}</ol>
+                ? <ol className="rec-list">{h.items.map((it) => <RecommendationItemView key={it.skill_id} item={it} compact />)}</ol>
                 : <p className="data-note">{h.reason}</p>}
             </li>
           );

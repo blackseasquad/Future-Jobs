@@ -76,6 +76,8 @@ test('forecast: groups with real data, careers, 3 horizons, known skills exclude
   assert.ok(!recommended.includes('python') && !recommended.includes('sql'));
   assert.ok(recommended.length > 0);
   assert.match(r.plan.text, /5 ч\. седмично/);
+  // every chosen interest is represented in the plan (tech AND green)
+  assert.ok(recommended.some((id) => ['renewable-energy', 'sustainability'].includes(id)), `no green skill in ${recommended}`);
   assert.equal(r.summary.length, QUESTIONS.length);
 });
 

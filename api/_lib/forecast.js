@@ -124,7 +124,10 @@ export function buildForecast({ answers, snapshot, now = new Date() }) {
   const profile = profileFromAnswers(answers);
   const horizons = buildRecommendations({
     skills: snapshot.skills, scores: snapshot.scores, sources: snapshot.sources,
-    profile: { knownSkills: known, favoriteCareerIds: [], quizCategory: profile.topCategory, answerSkills: profile.answerSkills },
+    profile: {
+      knownSkills: known, favoriteCareerIds: [], quizCategory: profile.topCategory, answerSkills: profile.answerSkills,
+      coverGroups: answers.interests.map((oid) => (option('interests', oid)?.skills || []).filter((s) => !known.includes(s))),
+    },
   });
   const groups = matchGroups(snapshot.occupationGroups, profile, answers, known);
   const careers = matchCareers(profile, known);

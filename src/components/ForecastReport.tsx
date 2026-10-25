@@ -134,7 +134,7 @@ export default function ForecastReport({ token, report, market, notify, onRetake
               <section key={key} className="horizon">
                 <h4><i className={`fa-solid ${HORIZON_ICONS[key]}`} /> {h.label}</h4>
                 {h.available
-                  ? <ol className="rec-list">{h.items.map((it) => <RecommendationItemView key={it.skill_id} item={it} />)}</ol>
+                  ? <ol className="rec-list">{h.items.map((it) => <RecommendationItemView key={it.skill_id} item={it} compact />)}</ol>
                   : <p className="data-note">{h.reason}</p>}
               </section>
             );
